@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Blacklist Edition</title>
+    <title>496 Challenge 2026 - Social Club</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        #map { height: 200px; border-radius: 1.5rem; }
         .medal-unlocked { background: linear-gradient(90deg, #ffd700, #fff5b1, #ffd700); background-size: 200%; animation: shine 3s linear infinite; }
         @keyframes shine { 0% { background-position: -200%; } 100% { background-position: 200%; } }
         .progress-bar-smooth { transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -24,23 +23,16 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-[#0a0a0a] text-white font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
+<body class="bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
 
-    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl transition-all duration-500 hidden px-4">
+    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl text-center">
-            <div class="w-16 h-16 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-user-shield text-lime-400 text-2xl"></i>
-            </div>
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Identification</h2>
-            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Connecte-toi pour gérer tes sorties</p>
-            
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-6">Challenge 496</h2>
             <div class="space-y-4 text-left">
-                <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 appearance-none text-white cursor-pointer">
-                    <option value="">Chargement...</option>
-                </select>
-                <div class="relative py-2"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div><div class="relative flex justify-center text-[10px] uppercase text-gray-600"><span class="bg-gray-900 px-2">Ou</span></div></div>
+                <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm text-white outline-none focus:border-lime-500 appearance-none cursor-pointer"></select>
+                <div class="text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">Ou</div>
                 <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 text-white">
-                <button onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 mt-4">Entrer</button>
+                <button onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95">Commencer</button>
             </div>
         </div>
     </div>
@@ -50,17 +42,26 @@
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-400 italic tracking-tighter uppercase">496 Social</h1>
                 <div class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                    <img id="user-avatar" class="w-5 h-5 rounded-full hidden border border-gray-600" src="" alt="">
                     <span id="current-user-name" class="text-[10px] font-black uppercase text-gray-300 italic">Invité</span>
-                    <button onclick="logout()" class="text-gray-500 hover:text-red-500 transition-colors"><i class="fas fa-power-off text-xs"></i></button>
+                    <button onclick="logout()" class="text-gray-600 hover:text-red-500"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </div>
         </nav>
 
         <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
-            <aside class="lg:col-span-3 order-2 lg:order-1">
-                <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl sticky top-24">
+            
+            <aside class="lg:col-span-3 order-2 lg:order-1 space-y-6">
+                <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl">
                     <h3 class="text-lime-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-trophy"></i> Classement</h3>
                     <div id="leaderboard" class="space-y-4"></div>
+                </div>
+
+                <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl">
+                    <h3 class="text-gray-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-bolt text-lime-400"></i> Activités Récentes</h3>
+                    <div id="motivation-wall" class="space-y-4">
+                        <p class="text-[10px] text-gray-700 italic text-center">Aucune activité récente</p>
+                    </div>
                 </div>
             </aside>
 
@@ -71,34 +72,25 @@
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6"><div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div></div>
-                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
+                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col">
-                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all shadow-lg h-full">
+                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center shadow-lg h-full active:scale-95 transition-all">
                             <svg class="w-8 h-8 mb-2 fill-white" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116zM10.257 7.833l-3.064 6.134h4.118l1.018-2.043 1.022 2.043h4.112l-7.206-14z"/></svg>
                             <span class="font-black uppercase text-[10px] tracking-widest text-white">Sync Strava</span>
                         </button>
-                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center uppercase tracking-tighter"></p>
+                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center"></p>
                     </div>
-                    <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all border border-gray-700 h-full"><i class="fas fa-route text-2xl text-lime-400 mb-2"></i><span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
-                </div>
-
-                <div class="bg-gray-900/50 p-6 rounded-[2rem] border border-gray-800 shadow-lg space-y-4">
-                    <h4 class="text-[9px] font-black uppercase text-gray-500 tracking-[0.2em]">Saisie Manuelle</h4>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="date" id="manual-date" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none flex-1 text-white">
-                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none w-full sm:w-24 text-white">
-                        <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl">Ajouter</button>
-                    </div>
+                    <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center border border-gray-700 active:scale-95"><i class="fas fa-route text-2xl text-lime-400 mb-2"></i><span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
                 </div>
 
                 <div class="space-y-3" id="activities-list"></div>
             </div>
 
             <aside class="lg:col-span-3 order-3">
-                <div id="medal-card" class="group relative bg-gray-900 p-8 rounded-[2rem] border border-gray-800 text-center flex flex-col items-center cursor-help transition-all duration-500">
+                <div id="medal-card" class="bg-gray-900 p-8 rounded-[2rem] border border-gray-800 text-center flex flex-col items-center">
                     <div class="relative w-28 h-28 mb-4 flex items-center justify-center">
                         <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="6" />
@@ -106,9 +98,8 @@
                         </svg>
                         <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 relative z-10" style="filter: grayscale(100%) brightness(30%);"></i>
                     </div>
-                    <h3 class="font-black italic uppercase text-xs tracking-widest text-gray-300">Challenge 496</h3>
-                    <p class="text-[10px] text-gray-500 mt-2 uppercase" id="medal-status">0% Complété</p>
-                    <button onclick="deleteAccount()" class="mt-10 text-[8px] text-gray-600 hover:text-red-500 uppercase font-bold tracking-widest">Supprimer Profil</button>
+                    <p class="text-[10px] text-gray-500 mt-2 uppercase" id="medal-status">0%</p>
+                    <button onclick="deleteAccount()" class="mt-10 text-[8px] text-gray-700 hover:text-red-500 font-bold uppercase tracking-widest">Supprimer Profil</button>
                 </div>
             </aside>
         </main>
@@ -125,30 +116,33 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        // v8 inclut ignoredIds
-        let userData = JSON.parse(localStorage.getItem('496_data_v8')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [] };
+        let userData = JSON.parse(localStorage.getItem('496_data_v9')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
 
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             if(myPseudo) {
-                document.getElementById('manual-date').valueAsDate = new Date();
                 updateUI();
                 refreshLeaderboard();
                 checkStravaCallback();
+                setInterval(updateSyncDisplay, 60000);
             }
         });
 
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
-            const main = document.getElementById('main-content');
             if (!myPseudo) {
                 modal.classList.remove('hidden');
-                main.classList.add('blur-bg');
+                document.getElementById('main-content').classList.add('blur-bg');
                 await populateModalPseudos();
             } else {
                 modal.classList.add('hidden');
-                main.classList.remove('blur-bg');
+                document.getElementById('main-content').classList.remove('blur-bg');
                 document.getElementById('current-user-name').innerText = myPseudo;
+                if(userData.avatarUrl) {
+                    const img = document.getElementById('user-avatar');
+                    img.src = userData.avatarUrl;
+                    img.classList.remove('hidden');
+                }
             }
         }
 
@@ -156,12 +150,7 @@
             const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
             const select = document.getElementById('modal-pseudo-select');
             select.innerHTML = `<option value="">-- Choisir mon profil --</option>`;
-            if (data) data.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.pseudo;
-                opt.textContent = u.pseudo;
-                select.appendChild(opt);
-            });
+            if (data) data.forEach(u => select.add(new Option(u.pseudo, u.pseudo)));
         }
 
         async function confirmLogin() {
@@ -169,30 +158,30 @@
             const created = document.getElementById('modal-new-pseudo').value.trim();
             if (created) {
                 myPseudo = created;
-                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [] });
+                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [], avatar_url: null });
             } else if (selected) {
                 myPseudo = selected;
                 const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', myPseudo).single();
                 if (data) {
-                    userData.activities = data.activities_data || [];
-                    userData.totalKm = parseFloat(data.distance) || 0;
-                    userData.ignoredIds = data.ignored_ids || [];
-                    localStorage.setItem('496_data_v8', JSON.stringify(userData));
+                    userData = { 
+                        totalKm: parseFloat(data.distance) || 0, 
+                        activities: data.activities_data || [], 
+                        ignoredIds: data.ignored_ids || [], 
+                        avatarUrl: data.avatar_url || null 
+                    };
+                    localStorage.setItem('496_data_v9', JSON.stringify(userData));
                 }
             } else { return alert("Identifie-toi !"); }
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
         }
 
-        function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
-
         async function syncWithCloud() {
             if(!myPseudo) return;
             await supabaseClient.from('scores').upsert({ 
-                pseudo: myPseudo, 
-                distance: parseFloat(userData.totalKm) || 0,
-                activities_data: userData.activities,
-                ignored_ids: userData.ignoredIds
+                pseudo: myPseudo, distance: userData.totalKm, 
+                activities_data: userData.activities, ignored_ids: userData.ignoredIds,
+                avatar_url: userData.avatarUrl 
             });
             refreshLeaderboard();
         }
@@ -200,13 +189,33 @@
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
+                // CLASSEMENT
                 document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
                     <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
                         <div class="flex items-center gap-2">
                             <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
+                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800">` : `<div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center"><i class="fas fa-user text-[8px] text-gray-600"></i></div>`}
                             <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
                         </div>
-                        <span class="text-xs font-black">${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
+                        <span class="text-xs font-black">${(parseFloat(u.distance) || 0).toFixed(1)}</span>
+                    </div>
+                `).join('');
+
+                // MUR DE LA MOTIVATION (On compile toutes les activités du groupe)
+                let allActivities = [];
+                data.forEach(user => {
+                    const acts = user.activities_data || [];
+                    acts.forEach(a => allActivities.push({...a, userPseudo: user.pseudo, userAvatar: user.avatar_url}));
+                });
+                allActivities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+                
+                document.getElementById('motivation-wall').innerHTML = allActivities.slice(0, 5).map(a => `
+                    <div class="flex items-center gap-3 animate-fade-in border-l-2 border-lime-500/30 pl-3 py-1">
+                        <img src="${a.userAvatar || 'https://via.placeholder.com/30'}" class="w-7 h-7 rounded-full border border-gray-800">
+                        <div>
+                            <p class="text-[10px] text-white"><span class="font-black text-lime-400">${a.userPseudo}</span> a fait <span class="font-black">+${a.km} km</span></p>
+                            <p class="text-[8px] text-gray-600 uppercase font-bold">${a.dateDisplay}</p>
+                        </div>
                     </div>
                 `).join('');
             }
@@ -221,34 +230,21 @@
             saveAndRefresh();
         }
 
-        function deleteActivity(id) {
-            const act = userData.activities.find(a => a.id === id);
-            if(confirm("Supprimer cette sortie ? Elle ne réapparaîtra plus lors des synchros Strava.")) {
-                // Si c'est une sortie Strava, on blackliste son ID
-                if (act.stravaId) {
-                    userData.ignoredIds.push(act.stravaId);
-                }
-                userData.activities = userData.activities.filter(a => a.id !== id);
-                saveAndRefresh();
-            }
-        }
-
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v8', JSON.stringify(userData));
+            localStorage.setItem('496_data_v9', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
 
         function updateUI() {
-            const total = userData.totalKm;
-            const progress = Math.min(total / 496, 1);
-            document.getElementById('total-display').innerText = total.toFixed(1);
+            const progress = Math.min(userData.totalKm / 496, 1);
+            document.getElementById('total-display').innerText = userData.totalKm.toFixed(1);
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
-                <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
+                <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group">
                     <div><p class="text-[9px] text-gray-500 uppercase">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
                     <div class="flex items-center gap-4"><span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
                     <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>
@@ -256,6 +252,7 @@
             `).join('');
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
+            updateSyncDisplay();
         }
 
         async function checkStravaCallback() {
@@ -268,58 +265,67 @@
                         body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
+                    
+                    // ON RÉCUPÈRE L'AVATAR STRAVA
+                    if(tokenData.athlete && tokenData.athlete.profile_medium) {
+                        userData.avatarUrl = tokenData.athlete.profile_medium;
+                    }
+
                     const after = Math.floor(new Date('2026-01-01').getTime() / 1000);
                     const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}`, {
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
                     const activities = await actResp.json();
-                    
                     activities.forEach(a => {
-                        const isRun = (a.type === 'Run' || a.sport_type === 'Run');
-                        const isNew = !userData.activities.find(ex => ex.stravaId === a.id);
-                        const isNotIgnored = !userData.ignoredIds.includes(a.id); // VÉRIFICATION LISTE NOIRE
-                        
-                        if(isRun && isNew && isNotIgnored) {
+                        if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id) && !userData.ignoredIds.includes(a.id)) {
                             addActivity(a.distance / 1000, a.name, a.id, a.start_date);
                         }
                     });
+                    userData.lastSync = Date.now();
+                    saveAndRefresh();
                     window.history.pushState({}, document.title, REDIRECT_URI);
                 } catch(e) { console.error(e); }
             }
         }
 
         function handleGPX(input) {
-            const file = input.files[0];
             const reader = new FileReader();
             reader.onload = (e) => {
                 const gpx = new gpxParser();
                 gpx.parse(e.target.result);
-                addActivity(gpx.tracks[0].distance.total / 1000, "GPX: " + file.name);
+                addActivity(gpx.tracks[0].distance.total / 1000, "GPX Import");
             };
-            reader.readAsText(file);
+            reader.readAsText(input.files[0]);
         }
 
-        function submitManualEntry() {
-            const d = document.getElementById('manual-date').value;
-            const k = parseFloat(document.getElementById('manual-km').value);
-            if (!d || isNaN(k) || k <= 0) return alert("Saisie invalide");
-            addActivity(k, "Entrée manuelle", null, d);
-            document.getElementById('manual-km').value = "";
+        function deleteActivity(id) {
+            const act = userData.activities.find(a => a.id === id);
+            if(confirm("Supprimer ?")) {
+                if (act.stravaId) userData.ignoredIds.push(act.stravaId);
+                userData.activities = userData.activities.filter(a => a.id !== id);
+                saveAndRefresh();
+            }
         }
 
         function shareProgress() {
-            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 !%0A📊 *${Math.round((userData.totalKm/496)*100)}%*%0A🏁 Suis-nous : ${window.location.href}`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le challenge 496 ! 📊 *${Math.round((userData.totalKm/496)*100)}%*`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
+        function updateSyncDisplay() {
+            if(!userData.lastSync) return;
+            const diff = Math.floor((Date.now() - userData.lastSync) / 60000);
+            document.getElementById('last-sync-text').innerText = diff < 1 ? "Sync. à l'instant" : `Sync. il y a ${diff} min`;
+        }
+
+        function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
         async function deleteAccount() {
-            if(confirm("Supprimer définitivement ce profil ?")) {
+            if(confirm("Supprimer ce profil ?")) {
                 await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
                 localStorage.clear();
                 location.reload();
             }
         }
-
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
     </script>
 </body>
