@@ -237,25 +237,49 @@
         }
 
         async function checkStravaCallback() {
-            const code = new URLSearchParams(window.location.search).get('code');
-            if (code) {
-                const tokenResp = await fetch('https://www.strava.com/oauth/token', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
-                });
-                const tokenData = await tokenResp.json();
-                const afterDate = Math.floor(new Date('2026-01-01').getTime() / 1000);
-                const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${afterDate}`, {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                });
-                const activities = await actResp.json();
-                activities.forEach(a => {
-                    if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
-                        addActivity(a.distance / 1000, a.name, a.id);
-                    }
-                });
-                window.history.pushState({}, document.title, REDIRECT_URI);
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+        try {
+            const tokenResp = await fetch('https://www.strava.com/oauth/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    client_id: STRAVA_CLIENT_ID, 
+                    client_secret: STRAVA_CLIENT_SECRET, 
+                    code: code, 
+                    grant_type: 'authorization_code' 
+                })
+            });
+            const tokenData = await tokenResp.json();
+            
+            const afterDate = Math.floor(new Date('2026-01-01').getTime() / 1000);
+            const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${afterDate}`, {
+                headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+            });
+            const activities = await actResp.json();
+
+            activities.forEach(a => {
+                // On vérifie si c'est une course et si elle n'est pas déjà enregistrée
+                if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
+                    
+                    // --- EXTRACTION ET FORMATAGE DE LA DATE STRAVA ---
+                    const stravaDate = new Date(a.start_date); 
+                    const formattedDate = stravaDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                    
+                    // On passe formattedDate en 4ème argument
+                    addActivity(a.distance / 1000, a.name, a.id, formattedDate);
+                }
+            });
+            
+            // Nettoyage de l'URL pour enlever le code Strava
+            window.history.pushState({}, document.title, REDIRECT_URI);
+            
+        } catch(e) { 
+            console.error("Erreur Strava", e); 
+            alert("Erreur lors de la récupération des dates Strava.");
+        }
+    }
+}
             }
         }
 
