@@ -30,7 +30,7 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black text-lime-400 italic tracking-tighter">496 CHALLENGE 2026</h1>
             <div class="flex gap-2">
-                <input type="text" id="pseudo" placeholder="Pseudo" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm outline-none focus:border-lime-500 w-32">
+                <input type="text" id="pseudo" placeholder="Pseudo" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm outline-none focus:border-lime-500 w-32 text-white">
                 <button onclick="savePseudo()" class="bg-lime-600 hover:bg-lime-500 text-black font-bold text-xs px-3 rounded-lg transition-colors">OK</button>
             </div>
         </div>
@@ -79,8 +79,7 @@
                 <div id="map"></div>
             </div>
 
-            <div class="space-y-3" id="activities-list">
-                </div>
+            <div class="space-y-3" id="activities-list"></div>
         </div>
 
         <aside class="lg:col-span-3 order-3">
@@ -95,35 +94,77 @@
     </main>
 
     <script>
-        // --- CONFIGURATION (À REMPLIR) ---
+        // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://pbessdkzrifuadcarehx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_GeLeELk8wOY5Q9t25Xx-wQ_C79jIfn5';
         const STRAVA_CLIENT_ID = '194165';
         const STRAVA_CLIENT_SECRET = '983b20e67b5f155aaa0bd4f733824cf89e32059d';
         
-        const supabase = exports.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // CORRECTION ICI : Utilisation de la variable globale supabase chargée par le CDN
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
         let userData = JSON.parse(localStorage.getItem('496_data')) || { totalKm: 0, activities: [] };
         let map = null, polyline = null;
 
-        // Initialisation
         document.getElementById('pseudo').value = myPseudo;
         updateUI();
         refreshLeaderboard();
         checkStravaCallback();
 
-        // --- LOGIQUE UTILISATEUR ---
-
         function savePseudo() {
-            myPseudo = document.getElementById('pseudo').value.trim();
-            if(myPseudo) {
+            const input = document.getElementById('pseudo').value.trim();
+            if(input) {
+                myPseudo = input;
                 localStorage.setItem('496_pseudo', myPseudo);
                 syncWithCloud();
-                alert("Pseudo enregistré !");
+            } else {
+                alert("Entre un pseudo valide !");
             }
         }
+
+        async function syncWithCloud() {
+            if(!myPseudo) return;
+            try {
+                const { error } = await supabaseClient
+                    .from('scores')
+                    .upsert({ pseudo: myPseudo, distance: userData.totalKm });
+
+                if (error) throw error;
+                refreshLeaderboard();
+            } catch (err) {
+                console.error("Erreur Supabase:", err);
+                alert("Erreur lors de l'envoi du pseudo. Vérifie tes 'Policies' RLS sur Supabase.");
+            }
+        }
+
+        async function refreshLeaderboard() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('scores')
+                    .select('*')
+                    .order('distance', { ascending: false });
+
+                if (error) throw error;
+
+                if(data) {
+                    document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
+                        <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] font-bold text-gray-600">${i+1}.</span>
+                                <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-300'}">${u.pseudo}</span>
+                            </div>
+                            <span class="text-xs font-black">${u.distance.toFixed(1)} km</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Erreur de chargement du classement:", err);
+            }
+        }
+
+        // --- GPX ET STRAVA (Gardés tels quels car corrects) ---
 
         function handleGPX(input) {
             if(!myPseudo) return alert("Choisis un pseudo avant !");
@@ -147,29 +188,28 @@
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
-                const tokenResp = await fetch('https://www.strava.com/oauth/token', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
-                });
-                const tokenData = await tokenResp.json();
-                
-                const afterDate = Math.floor(new Date('2026-01-01').getTime() / 1000);
-                const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${afterDate}`, {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                });
-                const activities = await actResp.json();
+                try {
+                    const tokenResp = await fetch('https://www.strava.com/oauth/token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
+                    });
+                    const tokenData = await tokenResp.json();
+                    const afterDate = Math.floor(new Date('2026-01-01').getTime() / 1000);
+                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${afterDate}`, {
+                        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                    });
+                    const activities = await actResp.json();
 
-                activities.forEach(a => {
-                    if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
-                        addActivity(a.distance / 1000, a.name, a.id);
-                    }
-                });
-                window.history.pushState({}, document.title, REDIRECT_URI);
+                    activities.forEach(a => {
+                        if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
+                            addActivity(a.distance / 1000, a.name, a.id);
+                        }
+                    });
+                    window.history.pushState({}, document.title, REDIRECT_URI);
+                } catch(e) { console.error("Erreur Strava", e); }
             }
         }
-
-        // --- GESTION DES ACTIVITÉS ---
 
         function addActivity(km, name, stravaId = null) {
             const act = { id: Date.now(), stravaId, km: parseFloat(km.toFixed(2)), name, date: new Date().toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) };
@@ -191,15 +231,12 @@
             syncWithCloud();
         }
 
-        // --- INTERFACE ---
-
         function updateUI() {
             document.getElementById('total-display').innerText = userData.totalKm.toFixed(1);
             const percent = Math.min((userData.totalKm / 496) * 100, 100);
             document.getElementById('progress-fill').style.width = percent + "%";
             document.getElementById('percent-display').innerText = Math.round(percent) + "%";
 
-            // Liste
             const list = document.getElementById('activities-list');
             list.innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group">
@@ -214,34 +251,11 @@
                 </div>
             `).join('');
 
-            // Médaille
             if(userData.totalKm >= 496) {
                 document.getElementById('medal-card').classList.remove('grayscale', 'opacity-20');
                 document.getElementById('medal-card').classList.add('medal-unlocked', 'border-yellow-500');
                 document.getElementById('medal-text').innerText = "Vainqueur du 496 !";
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors:['#84cc16','#ffd700','#ffffff'] });
-            }
-        }
-
-        async function syncWithCloud() {
-            if(myPseudo) {
-                await supabase.from('scores').upsert({ pseudo: myPseudo, distance: userData.totalKm });
-                refreshLeaderboard();
-            }
-        }
-
-        async function refreshLeaderboard() {
-            const { data } = await supabase.from('scores').select('*').order('distance', { ascending: false });
-            if(data) {
-                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-bold text-gray-600">${i+1}.</span>
-                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-300'}">${u.pseudo}</span>
-                        </div>
-                        <span class="text-xs font-black">${u.distance.toFixed(1)} km</span>
-                    </div>
-                `).join('');
             }
         }
 
