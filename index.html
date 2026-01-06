@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Group Live</title>
+    <title>496 Challenge 2026 - Cloud Sync</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,39 +21,37 @@
         select { -webkit-appearance: none; appearance: none; }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Style pour flouter le fond quand le modal est là */
-        .blur-bg { filter: blur(8px); pointer-events: none; user-select: none; }
+        .blur-bg { filter: blur(12px); pointer-events: none; }
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-white font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
 
-    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all duration-500 hidden">
-        <div class="bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl text-center mx-4">
+    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl transition-all duration-500 hidden px-4">
+        <div class="bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl text-center">
             <div class="w-16 h-16 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-user-check text-lime-400 text-2xl"></i>
+                <i class="fas fa-user-shield text-lime-400 text-2xl"></i>
             </div>
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Qui court ?</h2>
-            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Identifie-toi pour accéder au challenge</p>
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Identification</h2>
+            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Choisis ton profil pour charger tes données</p>
             
             <div class="space-y-4 text-left">
-                <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Choisir un profil existant</label>
+                <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Profils existants</label>
                 <div class="relative">
                     <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 appearance-none text-white cursor-pointer">
-                        <option value="">Chargement des coureurs...</option>
+                        <option value="">Chargement...</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
                 </div>
 
                 <div class="relative py-4">
                     <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
-                    <div class="relative flex justify-center text-[10px] uppercase text-gray-600"><span class="bg-gray-900 px-2 font-bold tracking-widest">Ou</span></div>
+                    <div class="relative flex justify-center text-[10px] uppercase text-gray-600"><span class="bg-gray-900 px-2 font-bold tracking-widest uppercase">Ou nouveau</span></div>
                 </div>
 
-                <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Nouveau participant</label>
                 <input type="text" id="modal-new-pseudo" placeholder="Ton pseudo" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 text-white">
                 
-                <button onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl transition-all shadow-lg active:scale-95 mt-4">
-                    Entrer dans le challenge
+                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl transition-all shadow-lg active:scale-95 mt-4">
+                    Se connecter
                 </button>
             </div>
         </div>
@@ -63,7 +61,7 @@
         <nav class="p-4 bg-gray-900/50 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-400 italic tracking-tighter uppercase">496 Social</h1>
-                <div id="user-badge" class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                <div class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
                     <span id="current-user-name" class="text-[10px] font-black uppercase text-gray-300 italic">Invité</span>
                     <button onclick="logout()" class="text-gray-500 hover:text-red-500 transition-colors"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
@@ -82,8 +80,8 @@
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
                 <div class="flex justify-center">
-                    <div class="bg-gray-900/80 px-6 py-2 rounded-full border border-gray-800 flex items-center gap-3 shadow-lg">
-                        <i class="fas fa-calendar-alt text-lime-400 text-xs"></i>
+                    <div class="bg-gray-900/80 px-6 py-2 rounded-full border border-gray-800 flex items-center gap-3">
+                        <i class="fas fa-hourglass-half text-lime-400 text-xs"></i>
                         <span id="countdown-text" class="text-[10px] font-black uppercase tracking-widest text-gray-300 italic">...</span>
                     </div>
                 </div>
@@ -97,23 +95,23 @@
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6">
-                        <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0 shadow-[0_0_15px_rgba(132,204,22,0.4)]"></div>
+                        <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div>
                     </div>
 
                     <div class="flex justify-center">
-                        <button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">
-                            <i class="fab fa-whatsapp text-lg"></i> Partager mes progrès
+                        <button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            <i class="fab fa-whatsapp text-lg"></i> Partager
                         </button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col">
-                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all group active:scale-95 shadow-lg h-full">
+                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all shadow-lg h-full">
                             <svg class="w-8 h-8 mb-2 fill-white" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116zM10.257 7.833l-3.064 6.134h4.118l1.018-2.043 1.022 2.043h4.112l-7.206-14z"/></svg>
                             <span class="font-black uppercase text-[10px] tracking-widest text-white">Sync Strava</span>
                         </button>
-                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center uppercase tracking-tighter">Pas encore synchronisé</p>
+                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center uppercase tracking-tighter"></p>
                     </div>
                     
                     <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all border border-gray-700 h-full">
@@ -131,8 +129,6 @@
                         <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all">Ajouter</button>
                     </div>
                 </div>
-
-                <div id="map-container" class="hidden bg-gray-900 p-2 rounded-[2rem] border border-gray-800 overflow-hidden shadow-lg"><div id="map"></div></div>
 
                 <div class="space-y-3" id="activities-list"></div>
             </div>
@@ -173,12 +169,11 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v7')) || { totalKm: 0, activities: [], lastSync: null };
-        let map = null, polyline = null;
+        let userData = JSON.parse(localStorage.getItem('496_data_vCloud')) || { totalKm: 0, activities: [], lastSync: null };
 
         // --- INITIALISATION ---
         window.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth(); // Verrouillage immédiat
+            await checkAuth();
             if(myPseudo) {
                 document.getElementById('manual-date').valueAsDate = new Date();
                 updateCountdown();
@@ -189,7 +184,7 @@
             }
         });
 
-        // --- SÉCURITÉ & AUTH ---
+        // --- AUTH & CLOUD FETCH ---
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
             const main = document.getElementById('main-content');
@@ -217,29 +212,52 @@
         }
 
         async function confirmLogin() {
+            const btn = document.getElementById('login-btn');
             const selected = document.getElementById('modal-pseudo-select').value;
             const created = document.getElementById('modal-new-pseudo').value.trim();
-            if (created) {
-                myPseudo = created;
-                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0 });
-            } else if (selected) {
-                myPseudo = selected;
-            } else { return alert("Identifie-toi d'abord !"); }
+            btn.innerText = "Synchronisation...";
+            btn.disabled = true;
 
+            let finalPseudo = "";
+            if (created) {
+                finalPseudo = created;
+                await supabaseClient.from('scores').upsert({ pseudo: finalPseudo, distance: 0, activities_data: [] });
+            } else if (selected) {
+                finalPseudo = selected;
+                const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', finalPseudo).single();
+                if (data) {
+                    userData.activities = data.activities_data || [];
+                    userData.totalKm = parseFloat(data.distance) || 0;
+                    localStorage.setItem('496_data_vCloud', JSON.stringify(userData));
+                }
+            } else { 
+                btn.innerText = "Se connecter";
+                btn.disabled = false;
+                return alert("Identifie-toi !"); 
+            }
+
+            myPseudo = finalPseudo;
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
         }
 
         function logout() {
-            localStorage.removeItem('496_pseudo');
-            location.reload();
+            if(confirm("Déconnexion ? Tes données sont sauvegardées sur le Cloud.")) {
+                localStorage.removeItem('496_pseudo');
+                localStorage.removeItem('496_data_vCloud');
+                location.reload();
+            }
         }
 
-        // --- SYNCHRO CLOUD ---
+        // --- SYNC & LEADERBOARD ---
         async function syncWithCloud() {
             if(!myPseudo) return;
             const dist = parseFloat(userData.totalKm) || 0;
-            const { error } = await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: dist });
+            const { error } = await supabaseClient.from('scores').upsert({ 
+                pseudo: myPseudo, 
+                distance: dist,
+                activities_data: userData.activities 
+            });
             if (!error) refreshLeaderboard();
         }
 
@@ -258,7 +276,7 @@
             }
         }
 
-        // --- GESTION ACTIVITÉS ---
+        // --- ACTIVITÉS ---
         function addActivity(km, name, stravaId = null, dateOverride = null) {
             const dateISO = dateOverride ? new Date(dateOverride).toISOString() : new Date().toISOString();
             const act = { 
@@ -276,7 +294,7 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v7', JSON.stringify(userData));
+            localStorage.setItem('496_data_vCloud', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -284,8 +302,6 @@
         function updateUI() {
             const total = userData.totalKm;
             const progress = Math.min(total / 496, 1);
-            const remaining = Math.max(0, 496 - total);
-
             document.getElementById('total-display').innerText = total.toFixed(1);
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
@@ -311,29 +327,16 @@
 
             if (total >= 496) {
                 ring.style.stroke = "#eab308";
-                tooltip.innerText = "VICTOIRE ! 🏆";
+                tooltip.innerText = "CHALLENGE RÉUSSI ! 🏆";
                 if(!window.confettiDone) { confetti({ particleCount: 150, spread: 70 }); window.confettiDone=true; }
             } else {
-                tooltip.innerText = `RESTE ${remaining.toFixed(1)} KM`;
+                tooltip.innerText = `IL RESTE ${(496 - total).toFixed(1)} KM !`;
             }
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
             updateSyncDisplay();
         }
 
-        // --- TOOLS ---
-        function shareProgress() {
-            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 Challenge !%0A📊 Progression : *${Math.round((userData.totalKm/496)*100)}%*%0A🏁 Suivez nous : ${window.location.href}`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
-        }
-
-        function submitManualEntry() {
-            const d = document.getElementById('manual-date').value;
-            const k = parseFloat(document.getElementById('manual-km').value);
-            if (!d || isNaN(k) || k <= 0) return alert("Saisie invalide");
-            addActivity(k, "Entrée manuelle", null, d);
-            document.getElementById('manual-km').value = "";
-        }
-
+        // --- STRAVA & GPX ---
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -367,7 +370,7 @@
             reader.onload = (e) => {
                 const gpx = new gpxParser();
                 gpx.parse(e.target.result);
-                addActivity(gpx.tracks[0].distance.total / 1000, "Import GPX: " + file.name);
+                addActivity(gpx.tracks[0].distance.total / 1000, "Import: " + file.name);
             };
             reader.readAsText(file);
         }
@@ -376,11 +379,24 @@
             if(confirm("Supprimer ?")) { userData.activities = userData.activities.filter(a => a.id !== id); saveAndRefresh(); }
         }
 
+        function shareProgress() {
+            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 !%0A📊 *${Math.round((userData.totalKm/496)*100)}%*%0A🏁 Suis nous ici : ${window.location.href}`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
+        }
+
+        function submitManualEntry() {
+            const d = document.getElementById('manual-date').value;
+            const k = parseFloat(document.getElementById('manual-km').value);
+            if (!d || isNaN(k) || k <= 0) return alert("Saisie invalide");
+            addActivity(k, "Entrée manuelle", null, d);
+            document.getElementById('manual-km').value = "";
+        }
+
         function updateCountdown() {
             const diff = new Date(2026, 0, 31, 23, 59) - new Date();
             if (diff > 0) {
                 const d = Math.floor(diff / 86400000);
-                document.getElementById('countdown-text').innerText = `${d} jours restants en janvier`;
+                document.getElementById('countdown-text').innerText = `${d} jours restants`;
             } else { document.getElementById('countdown-text').innerText = "Défi Terminé"; }
         }
 
@@ -391,7 +407,7 @@
         }
 
         async function deleteAccount() {
-            if(confirm("Supprimer définitivement ce profil et son score ?")) {
+            if(confirm("Supprimer définitivement ce profil et TOUTES ses données ?")) {
                 await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
                 localStorage.clear();
                 location.reload();
