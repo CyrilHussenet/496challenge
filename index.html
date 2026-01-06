@@ -42,9 +42,9 @@
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-400 italic tracking-tighter uppercase">496 Social</h1>
                 <div class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
-                    <img id="user-avatar" class="w-5 h-5 rounded-full hidden border border-gray-600" src="" alt="">
+                    <img id="user-avatar" class="w-6 h-6 rounded-full hidden border border-gray-600 object-cover" src="" alt="">
                     <span id="current-user-name" class="text-[10px] font-black uppercase text-gray-300 italic">Invité</span>
-                    <button onclick="logout()" class="text-gray-600 hover:text-red-500"><i class="fas fa-power-off text-xs"></i></button>
+                    <button onclick="logout()" class="text-gray-600 hover:text-red-500 ml-1"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </div>
         </nav>
@@ -59,18 +59,18 @@
 
                 <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl">
                     <h3 class="text-gray-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-bolt text-lime-400"></i> Flux du Groupe</h3>
-                    <div id="motivation-wall" class="space-y-4 text-[10px] text-gray-600 italic">Chargement...</div>
+                    <div id="motivation-wall" class="space-y-4 text-[10px] text-gray-600 italic">...</div>
                 </div>
             </aside>
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
                 <div class="bg-gray-900 p-8 rounded-[2.5rem] border border-gray-800 shadow-2xl relative">
-                    <div class="flex justify-between items-end mb-4 text-white">
+                    <div class="flex justify-between items-end mb-4">
                         <div><h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2><p class="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">Km / 496</p></div>
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6"><div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div></div>
-                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
+                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,7 +123,7 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_vFinal')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
+        let userData = JSON.parse(localStorage.getItem('496_data_v10')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
 
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
@@ -136,7 +136,7 @@
             }
         });
 
-        // --- AUTH & LOGIN ---
+        // --- AUTH ---
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
             if (!myPseudo) {
@@ -178,14 +178,14 @@
                         avatarUrl: data.avatar_url || null,
                         lastSync: userData.lastSync
                     };
-                    localStorage.setItem('496_data_vFinal', JSON.stringify(userData));
+                    localStorage.setItem('496_data_v10', JSON.stringify(userData));
                 }
             } else { return alert("Identifie-toi !"); }
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
         }
 
-        // --- ACTIVITÉS & SYNC ---
+        // --- CORE LOGIC ---
         function submitManualEntry() {
             const d = document.getElementById('manual-date').value;
             const k = parseFloat(document.getElementById('manual-km').value);
@@ -206,7 +206,7 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_vFinal', JSON.stringify(userData));
+            localStorage.setItem('496_data_v10', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -214,8 +214,10 @@
         async function syncWithCloud() {
             if(!myPseudo) return;
             await supabaseClient.from('scores').upsert({ 
-                pseudo: myPseudo, distance: userData.totalKm, 
-                activities_data: userData.activities, ignored_ids: userData.ignoredIds,
+                pseudo: myPseudo, 
+                distance: userData.totalKm, 
+                activities_data: userData.activities, 
+                ignored_ids: userData.ignoredIds,
                 avatar_url: userData.avatarUrl 
             });
             refreshLeaderboard();
@@ -224,25 +226,27 @@
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
+                // Leaderboard
                 document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
                     <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
                         <div class="flex items-center gap-2">
                             <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
-                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800">` : `<div class="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-[8px] text-gray-500 font-bold">${u.pseudo[0]}</div>`}
+                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800 object-cover">` : `<div class="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-[8px] text-gray-500 font-bold uppercase">${u.pseudo[0]}</div>`}
                             <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
                         </div>
-                        <span class="text-xs font-black">${(parseFloat(u.distance) || 0).toFixed(1)}</span>
+                        <span class="text-xs font-black text-white">${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
                     </div>
                 `).join('');
 
+                // Activity Feed
                 let wallActs = [];
                 data.forEach(user => {
                     (user.activities_data || []).forEach(a => wallActs.push({...a, user: user.pseudo, av: user.avatar_url}));
                 });
                 wallActs.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
                 document.getElementById('motivation-wall').innerHTML = wallActs.slice(0, 5).map(a => `
-                    <div class="flex items-center gap-2 border-l-2 border-lime-500/20 pl-2">
-                        <img src="${a.av || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full">
+                    <div class="flex items-center gap-2 border-l-2 border-lime-500/20 pl-2 animate-fade-in">
+                        <img src="${a.av || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full object-cover">
                         <p class="text-[9px] text-gray-300"><span class="text-lime-400 font-bold">${a.user}</span> +${a.km}km</p>
                     </div>
                 `).join('');
@@ -250,21 +254,26 @@
         }
 
         function updateUI() {
-            const progress = Math.min(userData.totalKm / 496, 1);
-            document.getElementById('total-display').innerText = userData.totalKm.toFixed(1);
+            const total = userData.totalKm;
+            const progress = Math.min(total / 496, 1);
+            document.getElementById('total-display').innerText = total.toFixed(1);
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
+            
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
-                    <div><p class="text-[9px] text-gray-500 uppercase">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
+                    <div><p class="text-[9px] text-gray-500 uppercase font-bold">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
                     <div class="flex items-center gap-4"><span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
-                    <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>
+                    <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2 transition-all"><i class="fas fa-trash"></i></button></div>
                 </div>
             `).join('');
+            
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
+            updateSyncDisplay();
         }
 
+        // --- STRAVA ---
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -274,7 +283,12 @@
                         body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
-                    if(tokenData.athlete) userData.avatarUrl = tokenData.athlete.profile_medium;
+                    
+                    // Capturer l'avatar immédiatement
+                    if(tokenData.athlete) {
+                        userData.avatarUrl = tokenData.athlete.profile_medium || tokenData.athlete.profile;
+                    }
+
                     const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${Math.floor(new Date('2026-01-01').getTime()/1000)}`, {
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
@@ -284,11 +298,15 @@
                             addActivity(a.distance / 1000, a.name, a.id, a.start_date);
                         }
                     });
-                    userData.lastSync = Date.now(); saveAndRefresh(); window.history.pushState({}, "", REDIRECT_URI);
+
+                    userData.lastSync = Date.now();
+                    saveAndRefresh();
+                    window.history.pushState({}, "", REDIRECT_URI);
                 } catch(e) { console.error(e); }
             }
         }
 
+        // --- HELPERS ---
         function deleteActivity(id) {
             const act = userData.activities.find(a => a.id === id);
             if(confirm("Supprimer ?")) {
