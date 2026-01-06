@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Social Tracker</title>
+    <title>496 Challenge 2026 - Group Live</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,30 +15,28 @@
 
     <style>
         #map { height: 200px; border-radius: 1.5rem; }
-        .medal-unlocked { 
-            background: linear-gradient(90deg, #ffd700, #fff5b1, #ffd700); 
-            background-size: 200%; 
-            animation: shine 3s linear infinite; 
-        }
+        .medal-unlocked { background: linear-gradient(90deg, #ffd700, #fff5b1, #ffd700); background-size: 200%; animation: shine 3s linear infinite; }
         @keyframes shine { 0% { background-position: -200%; } 100% { background-position: 200%; } }
         .progress-bar-smooth { transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        select { -webkit-appearance: none; appearance: none; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-white font-sans selection:bg-lime-500 selection:text-black">
 
     <nav class="p-4 bg-gray-900/50 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black text-lime-400 italic tracking-tighter">496 SOCIAL</h1>
+            <h1 class="text-xl font-black text-lime-400 italic tracking-tighter uppercase">496 Social 2026</h1>
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    <select id="pseudo-select" onchange="changeUser(this.value)" class="bg-gray-800 border border-gray-700 rounded-lg pl-3 pr-8 py-1.5 text-xs outline-none focus:border-lime-500 min-w-[120px] cursor-pointer">
+                    <select id="pseudo-select" onchange="changeUser(this.value)" class="bg-gray-800 border border-gray-700 rounded-lg pl-3 pr-8 py-2 text-xs outline-none focus:border-lime-500 min-w-[130px] cursor-pointer text-white">
                         <option value="">Chargement...</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 pointer-events-none"></i>
                 </div>
-                <button onclick="addNewUser()" class="w-8 h-8 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors" title="Ajouter un coureur">
-                    <i class="fas fa-plus text-xs"></i>
+                <button onclick="addNewUser()" class="w-9 h-9 bg-lime-600 text-black rounded-lg flex items-center justify-center hover:bg-lime-500 transition-all shadow-lg shadow-lime-900/20">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -49,7 +47,7 @@
         <aside class="lg:col-span-3 order-2 lg:order-1">
             <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl sticky top-24">
                 <h3 class="text-lime-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2">
-                    <i class="fas fa-users"></i> Classement Groupe
+                    <i class="fas fa-trophy text-xs"></i> Leaderboard
                 </h3>
                 <div id="leaderboard" class="space-y-4">
                     </div>
@@ -59,8 +57,8 @@
         <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
             
             <div class="flex justify-center">
-                <div class="bg-gray-900/80 px-6 py-2 rounded-full border border-gray-800 flex items-center gap-3">
-                    <i class="fas fa-stopwatch text-lime-400 text-xs"></i>
+                <div class="bg-gray-900/80 px-6 py-2 rounded-full border border-gray-800 flex items-center gap-3 shadow-lg">
+                    <i class="fas fa-calendar-alt text-lime-400 text-xs"></i>
                     <span id="countdown-text" class="text-[10px] font-black uppercase tracking-widest text-gray-300 italic">...</span>
                 </div>
             </div>
@@ -74,28 +72,28 @@
                     <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                 </div>
                 <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden">
-                    <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div>
+                    <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0 shadow-[0_0_15px_rgba(132,204,22,0.5)]"></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all group active:scale-95">
+                <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all group active:scale-95 shadow-lg">
                     <svg class="w-8 h-8 mb-2 fill-white" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116zM10.257 7.833l-3.064 6.134h4.118l1.018-2.043 1.022 2.043h4.112l-7.206-14z"/></svg>
                     <span class="font-black uppercase text-[10px] tracking-widest text-white">Sync Strava</span>
                 </button>
                 <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all border border-gray-700">
-                    <i class="fas fa-route text-2xl text-lime-400 mb-2"></i>
-                    <span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span>
+                    <i class="fas fa-file-export text-2xl text-lime-400 mb-2"></i>
+                    <span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Importer GPX</span>
                     <input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)">
                 </button>
             </div>
 
             <div class="bg-gray-900/50 p-6 rounded-[2rem] border border-gray-800 shadow-lg space-y-4">
-                <h4 class="text-[9px] font-black uppercase text-gray-500 tracking-[0.2em]">Ajout Manuel</h4>
+                <h4 class="text-[9px] font-black uppercase text-gray-500 tracking-[0.2em]">Saisie Manuelle</h4>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <input type="date" id="manual-date" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-lime-500 flex-1 text-white">
-                    <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-lime-500 w-full sm:w-24 text-white">
-                    <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all active:scale-95">Ajouter</button>
+                    <input type="number" id="manual-km" placeholder="Ex: 12.5" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-lime-500 w-full sm:w-24 text-white">
+                    <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all">Ajouter</button>
                 </div>
             </div>
 
@@ -109,8 +107,8 @@
         <aside class="lg:col-span-3 order-3">
             <div id="medal-card" class="group relative bg-gray-900 p-8 rounded-[2rem] border border-gray-800 text-center flex flex-col items-center cursor-help transition-all duration-500">
                 
-                <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-lime-500 text-black text-[10px] font-black px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 transform translate-y-2 group-hover:translate-y-0 shadow-lg">
-                    <span id="medal-tooltip">En attente...</span>
+                <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-lime-500 text-black text-[10px] font-black px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 transform translate-y-2 group-hover:translate-y-0 shadow-xl">
+                    <span id="medal-tooltip">Calcul en cours...</span>
                     <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-lime-500"></div>
                 </div>
 
@@ -126,10 +124,12 @@
                     </div>
                 </div>
                 
-                <h3 class="font-black italic uppercase text-xs tracking-widest">Challenge 496</h3>
+                <h3 class="font-black italic uppercase text-xs tracking-widest">Récompense 496</h3>
                 <p class="text-[10px] text-gray-500 mt-2 uppercase" id="medal-status">0% Complété</p>
                 
-                <button onclick="deleteMyAccount()" class="mt-8 text-[8px] text-gray-600 hover:text-red-500 uppercase font-bold tracking-widest">Quitter</button>
+                <button onclick="deleteMyAccount()" class="mt-10 text-[8px] text-gray-600 hover:text-red-500 uppercase font-bold tracking-widest transition-colors">
+                    <i class="fas fa-user-slash mr-1"></i> Quitter le défi
+                </button>
             </div>
         </aside>
     </main>
@@ -146,72 +146,66 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v2')) || { totalKm: 0, activities: [] };
+        let userData = JSON.parse(localStorage.getItem('496_data_v3')) || { totalKm: 0, activities: [] };
         let map = null, polyline = null;
 
+        // --- DEMARRAGE ---
         window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('manual-date').valueAsDate = new Date();
             updateCountdown();
-            await populatePseudos(); // Charger le menu déroulant
+            await populatePseudos();
             updateUI();
             checkStravaCallback();
         });
 
-        // --- GESTION PSEUDO & SOCIAL ---
+        // --- GESTION SOCIALE (MENU DEROULANT) ---
         async function populatePseudos() {
-            const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
-            const select = document.getElementById('pseudo-select');
-            select.innerHTML = `<option value="">-- Qui court ? --</option>`;
-            if(data) {
-                data.forEach(u => {
-                    const opt = document.createElement('option');
-                    opt.value = u.pseudo;
-                    opt.textContent = u.pseudo;
-                    if(u.pseudo === myPseudo) opt.selected = true;
-                    select.appendChild(opt);
-                });
-            }
+            try {
+                const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
+                const select = document.getElementById('pseudo-select');
+                select.innerHTML = `<option value="">-- Qui court ? --</option>`;
+                if(data && data.length > 0) {
+                    data.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.pseudo;
+                        opt.textContent = u.pseudo;
+                        if(u.pseudo === myPseudo) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    select.innerHTML = `<option value="">Aucun membre</option>`;
+                }
+            } catch (err) { console.error("Erreur chargement pseudos", err); }
             refreshLeaderboard();
+        }
+
+        async function addNewUser() {
+            const name = prompt("Entre ton pseudo pour rejoindre le groupe :");
+            if(name && name.trim() !== "") {
+                const cleanName = name.trim();
+                myPseudo = cleanName;
+                localStorage.setItem('496_pseudo', myPseudo);
+                // On crée le record à 0km
+                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0 });
+                await populatePseudos();
+                location.reload();
+            }
         }
 
         function changeUser(val) {
             if(!val) return;
             myPseudo = val;
             localStorage.setItem('496_pseudo', myPseudo);
-            // On ne change pas les data locales, chaque téléphone garde sa liste 
-            // pour éviter de mélanger les activités, seul le score est cloud.
+            // On refresh tout le UI avec ce pseudo (mais garde ses data locales)
             updateUI();
             syncWithCloud();
         }
 
-        function addNewUser() {
-            const name = prompt("Entre ton nouveau pseudo :");
-            if(name) {
-                myPseudo = name.trim();
-                localStorage.setItem('496_pseudo', myPseudo);
-                syncWithCloud();
-                location.reload();
-            }
-        }
-
-        async function refreshLeaderboard() {
-            const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
-            if(data) {
-                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
-                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
-                        </div>
-                        <span class="text-xs font-black">${u.distance.toFixed(1)}</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // --- LOGIQUE METIER & TRI ---
+        // --- GESTION DES ACTIVITÉS & TRI ---
         function addActivity(km, name, stravaId = null, dateOverride = null) {
-            // On stocke la date en format ISO pour trier proprement
+            if(!myPseudo) return alert("Choisis un pseudo en haut !");
+            
+            // ISO pour le tri
             const dateISO = dateOverride ? new Date(dateOverride).toISOString() : new Date().toISOString();
             
             const act = { 
@@ -228,11 +222,11 @@
         }
 
         function saveAndRefresh() {
-            // TRI DÉCROISSANT PAR DATE
+            // TRI CHRONOLOGIQUE DÉCROISSANT (Plus récent en haut)
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v2', JSON.stringify(userData));
+            localStorage.setItem('496_data_v3', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -244,6 +238,7 @@
             }
         }
 
+        // --- INTERFACE (UI) ---
         function updateUI() {
             const total = userData.totalKm;
             const progress = Math.min(total / 496, 1);
@@ -253,21 +248,22 @@
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
 
-            // Historique trié
-            document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
+            // Liste des activités
+            const list = document.getElementById('activities-list');
+            list.innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
                     <div>
                         <p class="text-[9px] text-gray-500 font-bold uppercase">${a.dateDisplay}</p>
-                        <p class="font-bold text-sm text-gray-300">${a.name}</p>
+                        <p class="font-bold text-sm text-gray-300 truncate w-32 md:w-48">${a.name}</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="text-lime-400 font-black">+${a.km.toFixed(1)}</span>
-                        <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
+                        <span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
+                        <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2 transition-all"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
             `).join('');
 
-            // Médaille Jauge SVG
+            // JAUGE CIRCULAIRE & MEDAILLE
             const icon = document.getElementById('medal-icon-svg');
             const ring = document.getElementById('progress-ring');
             const tooltip = document.getElementById('medal-tooltip');
@@ -280,60 +276,50 @@
                 ring.style.stroke = "#eab308";
                 tooltip.innerText = "CHALLENGE RÉUSSI ! 🏆";
                 tooltip.classList.replace('bg-lime-500', 'bg-yellow-400');
-                if(!window.confettiDone) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); window.confettiDone=true; }
+                if(!window.confettiDone) { 
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); 
+                    window.confettiDone=true; 
+                }
             } else {
-                tooltip.innerText = `ENCORE ${remaining.toFixed(1)} KM !`;
+                ring.style.stroke = "#84cc16";
+                tooltip.innerText = `RESTE ${remaining.toFixed(1)} KM !`;
+                window.confettiDone=false;
             }
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
         }
 
-        // --- STRAVA / GPX / TOOLS (Inchangés mais intégrés) ---
+        // --- OUTILS (STRAVA, GPX, ETC) ---
         function submitManualEntry() {
-            if(!myPseudo) return alert("Choisis qui tu es !");
             const d = document.getElementById('manual-date').value;
             const k = parseFloat(document.getElementById('manual-km').value);
-            if (!d || isNaN(k) || k <= 0) return alert("Données invalides");
-            addActivity(k, "Saisie manuelle", null, d);
+            if (!d || isNaN(k) || k <= 0) return alert("Saisie invalide");
+            addActivity(k, "Entrée manuelle", null, d);
             document.getElementById('manual-km').value = "";
         }
 
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
-                const tokenResp = await fetch('https://www.strava.com/oauth/token', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
-                });
-                const tokenData = await tokenResp.json();
-                const afterDate = Math.floor(new Date('2026-01-01').getTime() / 1000);
-                const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${afterDate}`, {
-                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
-                });
-                const activities = await actResp.json();
-                activities.forEach(a => {
-                    if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
-                        addActivity(a.distance / 1000, a.name, a.id, a.start_date);
-                    }
-                });
-                window.history.pushState({}, document.title, REDIRECT_URI);
+                try {
+                    const tokenResp = await fetch('https://www.strava.com/oauth/token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
+                    });
+                    const tokenData = await tokenResp.json();
+                    const after = Math.floor(new Date('2026-01-01').getTime() / 1000);
+                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}`, {
+                        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                    });
+                    const activities = await actResp.json();
+                    activities.forEach(a => {
+                        if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
+                            addActivity(a.distance / 1000, a.name, a.id, a.start_date);
+                        }
+                    });
+                    window.history.pushState({}, document.title, REDIRECT_URI);
+                } catch(e) { console.error("Erreur Strava", e); }
             }
-        }
-
-        function deleteActivity(id) {
-            if(confirm("Supprimer cette course ?")) {
-                userData.activities = userData.activities.filter(a => a.id !== id);
-                saveAndRefresh();
-            }
-        }
-
-        function updateCountdown() {
-            const diff = new Date(2026, 0, 31, 23, 59) - new Date();
-            if (diff > 0) {
-                const d = Math.floor(diff / 86400000);
-                const h = Math.floor((diff % 86400000) / 3600000);
-                document.getElementById('countdown-text').innerText = `${d} jours et ${h}h restants`;
-            } else { document.getElementById('countdown-text').innerText = "Fin du défi !"; }
         }
 
         function handleGPX(input) {
@@ -359,12 +345,49 @@
             map.fitBounds(polyline.getBounds());
         }
 
+        async function refreshLeaderboard() {
+            const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
+            if(data) {
+                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
+                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
+                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
+                        </div>
+                        <span class="text-xs font-black">${u.distance.toFixed(1)} km</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function deleteActivity(id) {
+            if(confirm("Supprimer cette activité ?")) {
+                userData.activities = userData.activities.filter(a => a.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        function updateCountdown() {
+            const diff = new Date(2026, 0, 31, 23, 59) - new Date();
+            if (diff > 0) {
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                document.getElementById('countdown-text').innerText = `${d} jours et ${h}h restants en janvier`;
+            } else { document.getElementById('countdown-text').innerText = "Fin du challenge !"; }
+        }
+
         async function deleteMyAccount() {
+            if(!myPseudo) return;
             if(confirm("Effacer ton pseudo et ton score du classement ?")) {
                 await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
                 localStorage.clear();
                 location.reload();
             }
+        }
+
+        function connectStrava() {
+            if(!myPseudo) return alert("Choisis ton pseudo d'abord !");
+            window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`;
         }
     </script>
 </body>
