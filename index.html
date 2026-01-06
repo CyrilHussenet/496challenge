@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Social Club</title>
+    <title>496 Challenge 2026 - Secure Social</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,21 +18,36 @@
         @keyframes shine { 0% { background-position: -200%; } 100% { background-position: 200%; } }
         .progress-bar-smooth { transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         select { -webkit-appearance: none; appearance: none; }
-        .blur-bg { filter: blur(12px); pointer-events: none; }
+        .blur-bg { filter: blur(15px); pointer-events: none; }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
 
-    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
+    <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] w-full max-w-md shadow-2xl text-center">
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-6">Challenge 496</h2>
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">496 Social Club</h2>
+            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Zone de sécurité coureurs</p>
+            
             <div class="space-y-4 text-left">
-                <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm text-white outline-none focus:border-lime-500 appearance-none cursor-pointer"></select>
-                <div class="text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">Ou</div>
+                <div class="space-y-2">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Profil existant</label>
+                    <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm text-white outline-none focus:border-lime-500 appearance-none cursor-pointer"></select>
+                </div>
+
+                <div class="relative py-2"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div><div class="relative flex justify-center text-[10px] uppercase text-gray-600 font-bold"><span class="bg-gray-900 px-2 uppercase">Ou créer</span></div></div>
+
                 <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 text-white">
-                <button onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95">Commencer</button>
+                
+                <div class="space-y-2">
+                    <label class="text-[9px] font-bold text-lime-500 uppercase ml-2">Code PIN (4 chiffres)</label>
+                    <input type="password" id="modal-pin" placeholder="••••" inputmode="numeric" maxlength="4" class="w-full bg-gray-800 border-2 border-lime-500/20 rounded-2xl px-4 py-4 text-center text-2xl tracking-[1em] font-black outline-none focus:border-lime-500 text-lime-400">
+                </div>
+
+                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 mt-4 transition-all">
+                    Accéder au Dashboard
+                </button>
             </div>
         </div>
     </div>
@@ -40,11 +55,14 @@
     <div id="main-content">
         <nav class="p-4 bg-gray-900/50 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-black text-lime-400 italic tracking-tighter uppercase">496 Social</h1>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
+                    <h1 class="text-xl font-black text-white italic tracking-tighter uppercase">496 <span class="text-lime-400">SOCIAL</span></h1>
+                </div>
                 <div class="flex items-center gap-3 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
                     <img id="user-avatar" class="w-6 h-6 rounded-full hidden border border-gray-600 object-cover" src="" alt="">
                     <span id="current-user-name" class="text-[10px] font-black uppercase text-gray-300 italic">Invité</span>
-                    <button onclick="logout()" class="text-gray-600 hover:text-red-500 ml-1"><i class="fas fa-power-off text-xs"></i></button>
+                    <button onclick="logout()" class="text-gray-600 hover:text-red-500 ml-1 transition-colors"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </div>
         </nav>
@@ -70,7 +88,11 @@
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6"><div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div></div>
-                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
+                    <div class="flex justify-center">
+                        <button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95 transition-all">
+                            <i class="fab fa-whatsapp text-lg"></i> Partager sur WhatsApp
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,7 +127,7 @@
                         </svg>
                         <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 relative z-10" style="filter: grayscale(100%) brightness(30%);"></i>
                     </div>
-                    <p class="text-[10px] text-gray-500 mt-2 uppercase" id="medal-status">0%</p>
+                    <p class="text-[10px] text-gray-500 mt-2 uppercase font-black" id="medal-status">0% Complété</p>
                     <button onclick="deleteAccount()" class="mt-10 text-[8px] text-gray-700 hover:text-red-500 font-bold uppercase tracking-widest">Supprimer Profil</button>
                 </div>
             </aside>
@@ -123,7 +145,7 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v10')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
+        let userData = JSON.parse(localStorage.getItem('496_data_v11')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
 
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
@@ -136,7 +158,7 @@
             }
         });
 
-        // --- AUTH ---
+        // --- AUTH & LOGIN AVEC PIN ---
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
             if (!myPseudo) {
@@ -157,20 +179,43 @@
         async function populateModalPseudos() {
             const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
             const select = document.getElementById('modal-pseudo-select');
-            select.innerHTML = `<option value="">-- Choisir mon profil --</option>`;
+            select.innerHTML = `<option value="">-- Sélectionner mon profil --</option>`;
             if (data) data.forEach(u => select.add(new Option(u.pseudo, u.pseudo)));
         }
 
         async function confirmLogin() {
             const selected = document.getElementById('modal-pseudo-select').value;
             const created = document.getElementById('modal-new-pseudo').value.trim();
+            const pin = document.getElementById('modal-pin').value.trim();
+            const btn = document.getElementById('login-btn');
+
+            if (pin.length !== 4) return alert("Le code PIN doit comporter 4 chiffres !");
+            
+            btn.innerText = "Vérification...";
+            btn.disabled = true;
+
             if (created) {
+                // Création : on vérifie d'abord si le pseudo existe
+                const { data: exist } = await supabaseClient.from('scores').select('pseudo').eq('pseudo', created).single();
+                if(exist) {
+                    btn.innerText = "Accéder au Dashboard";
+                    btn.disabled = false;
+                    return alert("Ce pseudo existe déjà, sélectionne-le dans la liste !");
+                }
                 myPseudo = created;
-                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [], avatar_url: null });
+                await supabaseClient.from('scores').upsert({ 
+                    pseudo: myPseudo, pin: pin, distance: 0, activities_data: [], ignored_ids: [], avatar_url: null 
+                });
             } else if (selected) {
-                myPseudo = selected;
-                const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', myPseudo).single();
+                // Connexion : on vérifie le PIN
+                const { data, error } = await supabaseClient.from('scores').select('*').eq('pseudo', selected).single();
                 if (data) {
+                    if (data.pin !== pin) {
+                        btn.innerText = "Accéder au Dashboard";
+                        btn.disabled = false;
+                        return alert("Code PIN incorrect !");
+                    }
+                    myPseudo = selected;
                     userData = { 
                         totalKm: parseFloat(data.distance) || 0, 
                         activities: data.activities_data || [], 
@@ -178,14 +223,58 @@
                         avatarUrl: data.avatar_url || null,
                         lastSync: userData.lastSync
                     };
-                    localStorage.setItem('496_data_v10', JSON.stringify(userData));
+                    localStorage.setItem('496_data_v11', JSON.stringify(userData));
                 }
-            } else { return alert("Identifie-toi !"); }
+            } else { 
+                btn.innerText = "Accéder au Dashboard";
+                btn.disabled = false;
+                return alert("Identifie-toi !"); 
+            }
+
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
         }
 
-        // --- CORE LOGIC ---
+        async function syncWithCloud() {
+            if(!myPseudo) return;
+            // On ne renvoie pas le PIN ici pour ne pas risquer de l'écraser malencontreusement
+            await supabaseClient.from('scores').update({ 
+                distance: userData.totalKm, 
+                activities_data: userData.activities, 
+                ignored_ids: userData.ignoredIds,
+                avatar_url: userData.avatarUrl 
+            }).eq('pseudo', myPseudo);
+            refreshLeaderboard();
+        }
+
+        async function refreshLeaderboard() {
+            const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
+            if(data) {
+                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
+                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
+                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800 object-cover">` : `<div class="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-[8px] text-gray-500 font-bold uppercase">${u.pseudo[0]}</div>`}
+                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
+                        </div>
+                        <span class="text-xs font-black text-white">${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
+                    </div>
+                `).join('');
+
+                let wallActs = [];
+                data.forEach(user => {
+                    (user.activities_data || []).forEach(a => wallActs.push({...a, user: user.pseudo, av: user.avatar_url}));
+                });
+                wallActs.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+                document.getElementById('motivation-wall').innerHTML = wallActs.slice(0, 5).map(a => `
+                    <div class="flex items-center gap-2 border-l-2 border-lime-500/20 pl-2 animate-fade-in">
+                        <img src="${a.av || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full object-cover">
+                        <p class="text-[9px] text-gray-300"><span class="text-lime-400 font-bold">${a.user}</span> +${a.km}km</p>
+                    </div>
+                `).join('');
+            }
+        }
+
         function submitManualEntry() {
             const d = document.getElementById('manual-date').value;
             const k = parseFloat(document.getElementById('manual-km').value);
@@ -206,51 +295,9 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v10', JSON.stringify(userData));
+            localStorage.setItem('496_data_v11', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
-        }
-
-        async function syncWithCloud() {
-            if(!myPseudo) return;
-            await supabaseClient.from('scores').upsert({ 
-                pseudo: myPseudo, 
-                distance: userData.totalKm, 
-                activities_data: userData.activities, 
-                ignored_ids: userData.ignoredIds,
-                avatar_url: userData.avatarUrl 
-            });
-            refreshLeaderboard();
-        }
-
-        async function refreshLeaderboard() {
-            const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
-            if(data) {
-                // Leaderboard
-                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
-                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800 object-cover">` : `<div class="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-[8px] text-gray-500 font-bold uppercase">${u.pseudo[0]}</div>`}
-                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
-                        </div>
-                        <span class="text-xs font-black text-white">${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
-                    </div>
-                `).join('');
-
-                // Activity Feed
-                let wallActs = [];
-                data.forEach(user => {
-                    (user.activities_data || []).forEach(a => wallActs.push({...a, user: user.pseudo, av: user.avatar_url}));
-                });
-                wallActs.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
-                document.getElementById('motivation-wall').innerHTML = wallActs.slice(0, 5).map(a => `
-                    <div class="flex items-center gap-2 border-l-2 border-lime-500/20 pl-2 animate-fade-in">
-                        <img src="${a.av || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full object-cover">
-                        <p class="text-[9px] text-gray-300"><span class="text-lime-400 font-bold">${a.user}</span> +${a.km}km</p>
-                    </div>
-                `).join('');
-            }
         }
 
         function updateUI() {
@@ -259,7 +306,6 @@
             document.getElementById('total-display').innerText = total.toFixed(1);
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
-            
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
                     <div><p class="text-[9px] text-gray-500 uppercase font-bold">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
@@ -267,13 +313,11 @@
                     <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2 transition-all"><i class="fas fa-trash"></i></button></div>
                 </div>
             `).join('');
-            
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
             updateSyncDisplay();
         }
 
-        // --- STRAVA ---
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -283,12 +327,7 @@
                         body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
-                    
-                    // Capturer l'avatar immédiatement
-                    if(tokenData.athlete) {
-                        userData.avatarUrl = tokenData.athlete.profile_medium || tokenData.athlete.profile;
-                    }
-
+                    if(tokenData.athlete) userData.avatarUrl = tokenData.athlete.profile_medium || tokenData.athlete.profile;
                     const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${Math.floor(new Date('2026-01-01').getTime()/1000)}`, {
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
@@ -298,7 +337,6 @@
                             addActivity(a.distance / 1000, a.name, a.id, a.start_date);
                         }
                     });
-
                     userData.lastSync = Date.now();
                     saveAndRefresh();
                     window.history.pushState({}, "", REDIRECT_URI);
@@ -306,10 +344,9 @@
             }
         }
 
-        // --- HELPERS ---
         function deleteActivity(id) {
             const act = userData.activities.find(a => a.id === id);
-            if(confirm("Supprimer ?")) {
+            if(confirm("Supprimer cette activité ?")) {
                 if (act.stravaId) userData.ignoredIds.push(act.stravaId);
                 userData.activities = userData.activities.filter(a => a.id !== id);
                 saveAndRefresh();
@@ -336,13 +373,27 @@
             reader.readAsText(input.files[0]);
         }
 
-        function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
-        async function deleteAccount() {
-            if(confirm("Supprimer ce profil ?")) {
-                await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
-                localStorage.clear(); location.reload();
+        function logout() { 
+            if(confirm("Te déconnecter ? Ton profil est protégé par ton code PIN.")) {
+                localStorage.removeItem('496_pseudo'); 
+                location.reload(); 
             }
         }
+        
+        async function deleteAccount() {
+            if(confirm("Supprimer définitivement ce profil ? Cette action est irréversible.")) {
+                const pin = prompt("Confirme ton code PIN pour supprimer :");
+                const { data } = await supabaseClient.from('scores').select('pin').eq('pseudo', myPseudo).single();
+                if(data && data.pin === pin) {
+                    await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
+                    localStorage.clear(); 
+                    location.reload();
+                } else {
+                    alert("Code PIN incorrect !");
+                }
+            }
+        }
+
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
     </script>
 </body>
