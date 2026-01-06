@@ -58,32 +58,39 @@
                 </div>
 
                 <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl">
-                    <h3 class="text-gray-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-bolt text-lime-400"></i> Activités Récentes</h3>
-                    <div id="motivation-wall" class="space-y-4">
-                        <p class="text-[10px] text-gray-700 italic text-center">Aucune activité récente</p>
-                    </div>
+                    <h3 class="text-gray-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-bolt text-lime-400"></i> Flux du Groupe</h3>
+                    <div id="motivation-wall" class="space-y-4 text-[10px] text-gray-600 italic">Chargement...</div>
                 </div>
             </aside>
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
                 <div class="bg-gray-900 p-8 rounded-[2.5rem] border border-gray-800 shadow-2xl relative">
-                    <div class="flex justify-between items-end mb-4">
+                    <div class="flex justify-between items-end mb-4 text-white">
                         <div><h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2><p class="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">Km / 496</p></div>
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6"><div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div></div>
-                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
+                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col">
-                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center shadow-lg h-full active:scale-95 transition-all">
+                        <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center h-full transition-all active:scale-95 shadow-lg">
                             <svg class="w-8 h-8 mb-2 fill-white" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116zM10.257 7.833l-3.064 6.134h4.118l1.018-2.043 1.022 2.043h4.112l-7.206-14z"/></svg>
                             <span class="font-black uppercase text-[10px] tracking-widest text-white">Sync Strava</span>
                         </button>
-                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center"></p>
+                        <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 text-center uppercase"></p>
                     </div>
                     <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center border border-gray-700 active:scale-95"><i class="fas fa-route text-2xl text-lime-400 mb-2"></i><span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
+                </div>
+
+                <div class="bg-gray-900/50 p-6 rounded-[2rem] border border-gray-800 shadow-lg space-y-4">
+                    <h4 class="text-[9px] font-black uppercase text-gray-500 tracking-[0.2em]">Saisie Manuelle</h4>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="date" id="manual-date" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none flex-1 text-white">
+                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none w-full sm:w-24 text-white">
+                        <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all">Ajouter</button>
+                    </div>
                 </div>
 
                 <div class="space-y-3" id="activities-list"></div>
@@ -116,11 +123,12 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v9')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
+        let userData = JSON.parse(localStorage.getItem('496_data_vFinal')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [], avatarUrl: null };
 
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             if(myPseudo) {
+                document.getElementById('manual-date').valueAsDate = new Date();
                 updateUI();
                 refreshLeaderboard();
                 checkStravaCallback();
@@ -128,6 +136,7 @@
             }
         });
 
+        // --- AUTH & LOGIN ---
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
             if (!myPseudo) {
@@ -140,8 +149,7 @@
                 document.getElementById('current-user-name').innerText = myPseudo;
                 if(userData.avatarUrl) {
                     const img = document.getElementById('user-avatar');
-                    img.src = userData.avatarUrl;
-                    img.classList.remove('hidden');
+                    img.src = userData.avatarUrl; img.classList.remove('hidden');
                 }
             }
         }
@@ -167,13 +175,40 @@
                         totalKm: parseFloat(data.distance) || 0, 
                         activities: data.activities_data || [], 
                         ignoredIds: data.ignored_ids || [], 
-                        avatarUrl: data.avatar_url || null 
+                        avatarUrl: data.avatar_url || null,
+                        lastSync: userData.lastSync
                     };
-                    localStorage.setItem('496_data_v9', JSON.stringify(userData));
+                    localStorage.setItem('496_data_vFinal', JSON.stringify(userData));
                 }
             } else { return alert("Identifie-toi !"); }
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
+        }
+
+        // --- ACTIVITÉS & SYNC ---
+        function submitManualEntry() {
+            const d = document.getElementById('manual-date').value;
+            const k = parseFloat(document.getElementById('manual-km').value);
+            if (!d || isNaN(k) || k <= 0) return alert("Saisie invalide");
+            addActivity(k, "Entrée manuelle", null, d);
+            document.getElementById('manual-km').value = "";
+        }
+
+        function addActivity(km, name, stravaId = null, dateOverride = null) {
+            const dateISO = dateOverride ? new Date(dateOverride).toISOString() : new Date().toISOString();
+            userData.activities.push({ 
+                id: Date.now(), stravaId, km: parseFloat(km.toFixed(2)), name, dateISO,
+                dateDisplay: new Date(dateISO).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
+            });
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
+            userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+            userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
+            localStorage.setItem('496_data_vFinal', JSON.stringify(userData));
+            updateUI();
+            syncWithCloud();
         }
 
         async function syncWithCloud() {
@@ -189,53 +224,29 @@
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
-                // CLASSEMENT
                 document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
                     <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
                         <div class="flex items-center gap-2">
                             <span class="text-[9px] font-bold text-gray-700">${i+1}.</span>
-                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800">` : `<div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center"><i class="fas fa-user text-[8px] text-gray-600"></i></div>`}
+                            ${u.avatar_url ? `<img src="${u.avatar_url}" class="w-6 h-6 rounded-full border border-gray-800">` : `<div class="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-[8px] text-gray-500 font-bold">${u.pseudo[0]}</div>`}
                             <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-400'}">${u.pseudo}</span>
                         </div>
                         <span class="text-xs font-black">${(parseFloat(u.distance) || 0).toFixed(1)}</span>
                     </div>
                 `).join('');
 
-                // MUR DE LA MOTIVATION (On compile toutes les activités du groupe)
-                let allActivities = [];
+                let wallActs = [];
                 data.forEach(user => {
-                    const acts = user.activities_data || [];
-                    acts.forEach(a => allActivities.push({...a, userPseudo: user.pseudo, userAvatar: user.avatar_url}));
+                    (user.activities_data || []).forEach(a => wallActs.push({...a, user: user.pseudo, av: user.avatar_url}));
                 });
-                allActivities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
-                
-                document.getElementById('motivation-wall').innerHTML = allActivities.slice(0, 5).map(a => `
-                    <div class="flex items-center gap-3 animate-fade-in border-l-2 border-lime-500/30 pl-3 py-1">
-                        <img src="${a.userAvatar || 'https://via.placeholder.com/30'}" class="w-7 h-7 rounded-full border border-gray-800">
-                        <div>
-                            <p class="text-[10px] text-white"><span class="font-black text-lime-400">${a.userPseudo}</span> a fait <span class="font-black">+${a.km} km</span></p>
-                            <p class="text-[8px] text-gray-600 uppercase font-bold">${a.dateDisplay}</p>
-                        </div>
+                wallActs.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+                document.getElementById('motivation-wall').innerHTML = wallActs.slice(0, 5).map(a => `
+                    <div class="flex items-center gap-2 border-l-2 border-lime-500/20 pl-2">
+                        <img src="${a.av || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full">
+                        <p class="text-[9px] text-gray-300"><span class="text-lime-400 font-bold">${a.user}</span> +${a.km}km</p>
                     </div>
                 `).join('');
             }
-        }
-
-        function addActivity(km, name, stravaId = null, dateOverride = null) {
-            const dateISO = dateOverride ? new Date(dateOverride).toISOString() : new Date().toISOString();
-            userData.activities.push({ 
-                id: Date.now(), stravaId, km: parseFloat(km.toFixed(2)), name, dateISO,
-                dateDisplay: new Date(dateISO).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
-            });
-            saveAndRefresh();
-        }
-
-        function saveAndRefresh() {
-            userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
-            userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v9', JSON.stringify(userData));
-            updateUI();
-            syncWithCloud();
         }
 
         function updateUI() {
@@ -244,7 +255,7 @@
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
-                <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group">
+                <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
                     <div><p class="text-[9px] text-gray-500 uppercase">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
                     <div class="flex items-center gap-4"><span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
                     <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>
@@ -252,7 +263,6 @@
             `).join('');
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
-            updateSyncDisplay();
         }
 
         async function checkStravaCallback() {
@@ -260,19 +270,12 @@
             if (code) {
                 try {
                     const tokenResp = await fetch('https://www.strava.com/oauth/token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
-                    
-                    // ON RÉCUPÈRE L'AVATAR STRAVA
-                    if(tokenData.athlete && tokenData.athlete.profile_medium) {
-                        userData.avatarUrl = tokenData.athlete.profile_medium;
-                    }
-
-                    const after = Math.floor(new Date('2026-01-01').getTime() / 1000);
-                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}`, {
+                    if(tokenData.athlete) userData.avatarUrl = tokenData.athlete.profile_medium;
+                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${Math.floor(new Date('2026-01-01').getTime()/1000)}`, {
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
                     const activities = await actResp.json();
@@ -281,21 +284,9 @@
                             addActivity(a.distance / 1000, a.name, a.id, a.start_date);
                         }
                     });
-                    userData.lastSync = Date.now();
-                    saveAndRefresh();
-                    window.history.pushState({}, document.title, REDIRECT_URI);
+                    userData.lastSync = Date.now(); saveAndRefresh(); window.history.pushState({}, "", REDIRECT_URI);
                 } catch(e) { console.error(e); }
             }
-        }
-
-        function handleGPX(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const gpx = new gpxParser();
-                gpx.parse(e.target.result);
-                addActivity(gpx.tracks[0].distance.total / 1000, "GPX Import");
-            };
-            reader.readAsText(input.files[0]);
         }
 
         function deleteActivity(id) {
@@ -308,7 +299,7 @@
         }
 
         function shareProgress() {
-            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le challenge 496 ! 📊 *${Math.round((userData.totalKm/496)*100)}%*`;
+            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 ! 📊 *${Math.round((userData.totalKm/496)*100)}%*`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
@@ -318,12 +309,20 @@
             document.getElementById('last-sync-text').innerText = diff < 1 ? "Sync. à l'instant" : `Sync. il y a ${diff} min`;
         }
 
+        function handleGPX(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const gpx = new gpxParser(); gpx.parse(e.target.result);
+                addActivity(gpx.tracks[0].distance.total / 1000, "Import GPX");
+            };
+            reader.readAsText(input.files[0]);
+        }
+
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
         async function deleteAccount() {
             if(confirm("Supprimer ce profil ?")) {
                 await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
-                localStorage.clear();
-                location.reload();
+                localStorage.clear(); location.reload();
             }
         }
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
