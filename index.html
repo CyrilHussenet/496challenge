@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Cloud Sync</title>
+    <title>496 Challenge 2026 - Blacklist Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,9 +19,9 @@
         @keyframes shine { 0% { background-position: -200%; } 100% { background-position: 200%; } }
         .progress-bar-smooth { transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         select { -webkit-appearance: none; appearance: none; }
+        .blur-bg { filter: blur(12px); pointer-events: none; }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .blur-bg { filter: blur(12px); pointer-events: none; }
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-white font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
@@ -32,27 +32,15 @@
                 <i class="fas fa-user-shield text-lime-400 text-2xl"></i>
             </div>
             <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Identification</h2>
-            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Choisis ton profil pour charger tes données</p>
+            <p class="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Connecte-toi pour gérer tes sorties</p>
             
             <div class="space-y-4 text-left">
-                <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Profils existants</label>
-                <div class="relative">
-                    <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 appearance-none text-white cursor-pointer">
-                        <option value="">Chargement...</option>
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
-                </div>
-
-                <div class="relative py-4">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
-                    <div class="relative flex justify-center text-[10px] uppercase text-gray-600"><span class="bg-gray-900 px-2 font-bold tracking-widest uppercase">Ou nouveau</span></div>
-                </div>
-
-                <input type="text" id="modal-new-pseudo" placeholder="Ton pseudo" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 text-white">
-                
-                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl transition-all shadow-lg active:scale-95 mt-4">
-                    Se connecter
-                </button>
+                <select id="modal-pseudo-select" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 appearance-none text-white cursor-pointer">
+                    <option value="">Chargement...</option>
+                </select>
+                <div class="relative py-2"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div><div class="relative flex justify-center text-[10px] uppercase text-gray-600"><span class="bg-gray-900 px-2">Ou</span></div></div>
+                <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none focus:border-lime-500 text-white">
+                <button onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 mt-4">Entrer</button>
             </div>
         </div>
     </div>
@@ -71,38 +59,19 @@
         <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
             <aside class="lg:col-span-3 order-2 lg:order-1">
                 <div class="bg-gray-900/40 p-5 rounded-[2rem] border border-gray-800 shadow-xl sticky top-24">
-                    <h3 class="text-lime-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2">
-                        <i class="fas fa-trophy"></i> Classement
-                    </h3>
+                    <h3 class="text-lime-400 font-black uppercase text-[10px] mb-4 tracking-[0.2em] flex items-center gap-2"><i class="fas fa-trophy"></i> Classement</h3>
                     <div id="leaderboard" class="space-y-4"></div>
                 </div>
             </aside>
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
-                <div class="flex justify-center">
-                    <div class="bg-gray-900/80 px-6 py-2 rounded-full border border-gray-800 flex items-center gap-3">
-                        <i class="fas fa-hourglass-half text-lime-400 text-xs"></i>
-                        <span id="countdown-text" class="text-[10px] font-black uppercase tracking-widest text-gray-300 italic">...</span>
-                    </div>
-                </div>
-
                 <div class="bg-gray-900 p-8 rounded-[2.5rem] border border-gray-800 shadow-2xl relative">
                     <div class="flex justify-between items-end mb-4">
-                        <div>
-                            <h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2>
-                            <p class="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">Km / 496</p>
-                        </div>
+                        <div><h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2><p class="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-1">Km / 496</p></div>
                         <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                     </div>
-                    <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6">
-                        <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div>
-                    </div>
-
-                    <div class="flex justify-center">
-                        <button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
-                            <i class="fab fa-whatsapp text-lg"></i> Partager
-                        </button>
-                    </div>
+                    <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden mb-6"><div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div></div>
+                    <div class="flex justify-center"><button onclick="shareProgress()" class="flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-5 py-2 rounded-full text-[10px] font-black uppercase shadow-lg"><i class="fab fa-whatsapp text-lg"></i> Partager</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -113,20 +82,15 @@
                         </button>
                         <p id="last-sync-text" class="text-[9px] text-gray-600 mt-2 italic text-center uppercase tracking-tighter"></p>
                     </div>
-                    
-                    <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all border border-gray-700 h-full">
-                        <i class="fas fa-route text-2xl text-lime-400 mb-2"></i>
-                        <span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span>
-                        <input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)">
-                    </button>
+                    <button onclick="document.getElementById('gpx-input').click()" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all border border-gray-700 h-full"><i class="fas fa-route text-2xl text-lime-400 mb-2"></i><span class="font-black uppercase text-[10px] tracking-widest text-gray-400">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
                 </div>
 
                 <div class="bg-gray-900/50 p-6 rounded-[2rem] border border-gray-800 shadow-lg space-y-4">
                     <h4 class="text-[9px] font-black uppercase text-gray-500 tracking-[0.2em]">Saisie Manuelle</h4>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="date" id="manual-date" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-lime-500 flex-1 text-white">
-                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-lime-500 w-full sm:w-24 text-white">
-                        <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all">Ajouter</button>
+                        <input type="date" id="manual-date" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none flex-1 text-white">
+                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs outline-none w-full sm:w-24 text-white">
+                        <button onclick="submitManualEntry()" class="bg-white hover:bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl">Ajouter</button>
                     </div>
                 </div>
 
@@ -135,24 +99,16 @@
 
             <aside class="lg:col-span-3 order-3">
                 <div id="medal-card" class="group relative bg-gray-900 p-8 rounded-[2rem] border border-gray-800 text-center flex flex-col items-center cursor-help transition-all duration-500">
-                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-lime-500 text-black text-[10px] font-black px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 transform translate-y-2 group-hover:translate-y-0 shadow-xl">
-                        <span id="medal-tooltip">Calcul...</span>
-                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-lime-500"></div>
-                    </div>
-
                     <div class="relative w-28 h-28 mb-4 flex items-center justify-center">
                         <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="45" fill="none" stroke="#1f2937" stroke-width="6" />
                             <circle id="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#84cc16" stroke-width="6" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283" class="transition-all duration-1000" />
                         </svg>
-                        <div class="w-20 h-20 rounded-full flex items-center justify-center relative z-10">
-                            <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 transition-all duration-500" style="filter: grayscale(100%) brightness(30%);"></i>
-                        </div>
+                        <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 relative z-10" style="filter: grayscale(100%) brightness(30%);"></i>
                     </div>
-                    
                     <h3 class="font-black italic uppercase text-xs tracking-widest text-gray-300">Challenge 496</h3>
                     <p class="text-[10px] text-gray-500 mt-2 uppercase" id="medal-status">0% Complété</p>
-                    <button onclick="deleteAccount()" class="mt-10 text-[8px] text-gray-600 hover:text-red-500 uppercase font-bold tracking-widest transition-colors">Supprimer Profil</button>
+                    <button onclick="deleteAccount()" class="mt-10 text-[8px] text-gray-600 hover:text-red-500 uppercase font-bold tracking-widest">Supprimer Profil</button>
                 </div>
             </aside>
         </main>
@@ -169,22 +125,19 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_vCloud')) || { totalKm: 0, activities: [], lastSync: null };
+        // v8 inclut ignoredIds
+        let userData = JSON.parse(localStorage.getItem('496_data_v8')) || { totalKm: 0, activities: [], lastSync: null, ignoredIds: [] };
 
-        // --- INITIALISATION ---
         window.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             if(myPseudo) {
                 document.getElementById('manual-date').valueAsDate = new Date();
-                updateCountdown();
                 updateUI();
                 refreshLeaderboard();
                 checkStravaCallback();
-                setInterval(updateSyncDisplay, 60000);
             }
         });
 
-        // --- AUTH & CLOUD FETCH ---
         async function checkAuth() {
             const modal = document.getElementById('login-modal');
             const main = document.getElementById('main-content');
@@ -212,53 +165,36 @@
         }
 
         async function confirmLogin() {
-            const btn = document.getElementById('login-btn');
             const selected = document.getElementById('modal-pseudo-select').value;
             const created = document.getElementById('modal-new-pseudo').value.trim();
-            btn.innerText = "Synchronisation...";
-            btn.disabled = true;
-
-            let finalPseudo = "";
             if (created) {
-                finalPseudo = created;
-                await supabaseClient.from('scores').upsert({ pseudo: finalPseudo, distance: 0, activities_data: [] });
+                myPseudo = created;
+                await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [] });
             } else if (selected) {
-                finalPseudo = selected;
-                const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', finalPseudo).single();
+                myPseudo = selected;
+                const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', myPseudo).single();
                 if (data) {
                     userData.activities = data.activities_data || [];
                     userData.totalKm = parseFloat(data.distance) || 0;
-                    localStorage.setItem('496_data_vCloud', JSON.stringify(userData));
+                    userData.ignoredIds = data.ignored_ids || [];
+                    localStorage.setItem('496_data_v8', JSON.stringify(userData));
                 }
-            } else { 
-                btn.innerText = "Se connecter";
-                btn.disabled = false;
-                return alert("Identifie-toi !"); 
-            }
-
-            myPseudo = finalPseudo;
+            } else { return alert("Identifie-toi !"); }
             localStorage.setItem('496_pseudo', myPseudo);
             location.reload();
         }
 
-        function logout() {
-            if(confirm("Déconnexion ? Tes données sont sauvegardées sur le Cloud.")) {
-                localStorage.removeItem('496_pseudo');
-                localStorage.removeItem('496_data_vCloud');
-                location.reload();
-            }
-        }
+        function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
 
-        // --- SYNC & LEADERBOARD ---
         async function syncWithCloud() {
             if(!myPseudo) return;
-            const dist = parseFloat(userData.totalKm) || 0;
-            const { error } = await supabaseClient.from('scores').upsert({ 
+            await supabaseClient.from('scores').upsert({ 
                 pseudo: myPseudo, 
-                distance: dist,
-                activities_data: userData.activities 
+                distance: parseFloat(userData.totalKm) || 0,
+                activities_data: userData.activities,
+                ignored_ids: userData.ignoredIds
             });
-            if (!error) refreshLeaderboard();
+            refreshLeaderboard();
         }
 
         async function refreshLeaderboard() {
@@ -276,25 +212,31 @@
             }
         }
 
-        // --- ACTIVITÉS ---
         function addActivity(km, name, stravaId = null, dateOverride = null) {
             const dateISO = dateOverride ? new Date(dateOverride).toISOString() : new Date().toISOString();
-            const act = { 
-                id: Date.now(), 
-                stravaId, 
-                km: parseFloat(km.toFixed(2)), 
-                name, 
-                dateISO,
+            userData.activities.push({ 
+                id: Date.now(), stravaId, km: parseFloat(km.toFixed(2)), name, dateISO,
                 dateDisplay: new Date(dateISO).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
-            };
-            userData.activities.push(act);
+            });
             saveAndRefresh();
+        }
+
+        function deleteActivity(id) {
+            const act = userData.activities.find(a => a.id === id);
+            if(confirm("Supprimer cette sortie ? Elle ne réapparaîtra plus lors des synchros Strava.")) {
+                // Si c'est une sortie Strava, on blackliste son ID
+                if (act.stravaId) {
+                    userData.ignoredIds.push(act.stravaId);
+                }
+                userData.activities = userData.activities.filter(a => a.id !== id);
+                saveAndRefresh();
+            }
         }
 
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_vCloud', JSON.stringify(userData));
+            localStorage.setItem('496_data_v8', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -305,38 +247,17 @@
             document.getElementById('total-display').innerText = total.toFixed(1);
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
-
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group animate-fade-in">
-                    <div>
-                        <p class="text-[9px] text-gray-500 font-bold uppercase">${a.dateDisplay}</p>
-                        <p class="font-bold text-sm text-gray-300 truncate w-32 md:w-48">${a.name}</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
-                        <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
-                    </div>
+                    <div><p class="text-[9px] text-gray-500 uppercase">${a.dateDisplay}</p><p class="font-bold text-sm text-gray-300">${a.name}</p></div>
+                    <div class="flex items-center gap-4"><span class="text-lime-400 font-black text-lg">+${a.km.toFixed(1)}</span>
+                    <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>
                 </div>
             `).join('');
-
-            const ring = document.getElementById('progress-ring');
-            const icon = document.getElementById('medal-icon-svg');
-            const tooltip = document.getElementById('medal-tooltip');
-            ring.style.strokeDashoffset = 283 - (progress * 283);
-            icon.style.filter = `grayscale(${100 - (progress * 100)}%) brightness(${30 + (progress * 70)}%)`;
-
-            if (total >= 496) {
-                ring.style.stroke = "#eab308";
-                tooltip.innerText = "CHALLENGE RÉUSSI ! 🏆";
-                if(!window.confettiDone) { confetti({ particleCount: 150, spread: 70 }); window.confettiDone=true; }
-            } else {
-                tooltip.innerText = `IL RESTE ${(496 - total).toFixed(1)} KM !`;
-            }
+            document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}% Complété`;
-            updateSyncDisplay();
         }
 
-        // --- STRAVA & GPX ---
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -352,13 +273,16 @@
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
                     const activities = await actResp.json();
+                    
                     activities.forEach(a => {
-                        if((a.type === 'Run' || a.sport_type === 'Run') && !userData.activities.find(ex => ex.stravaId === a.id)) {
+                        const isRun = (a.type === 'Run' || a.sport_type === 'Run');
+                        const isNew = !userData.activities.find(ex => ex.stravaId === a.id);
+                        const isNotIgnored = !userData.ignoredIds.includes(a.id); // VÉRIFICATION LISTE NOIRE
+                        
+                        if(isRun && isNew && isNotIgnored) {
                             addActivity(a.distance / 1000, a.name, a.id, a.start_date);
                         }
                     });
-                    userData.lastSync = Date.now();
-                    saveAndRefresh();
                     window.history.pushState({}, document.title, REDIRECT_URI);
                 } catch(e) { console.error(e); }
             }
@@ -370,18 +294,9 @@
             reader.onload = (e) => {
                 const gpx = new gpxParser();
                 gpx.parse(e.target.result);
-                addActivity(gpx.tracks[0].distance.total / 1000, "Import: " + file.name);
+                addActivity(gpx.tracks[0].distance.total / 1000, "GPX: " + file.name);
             };
             reader.readAsText(file);
-        }
-
-        function deleteActivity(id) {
-            if(confirm("Supprimer ?")) { userData.activities = userData.activities.filter(a => a.id !== id); saveAndRefresh(); }
-        }
-
-        function shareProgress() {
-            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 !%0A📊 *${Math.round((userData.totalKm/496)*100)}%*%0A🏁 Suis nous ici : ${window.location.href}`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function submitManualEntry() {
@@ -392,31 +307,20 @@
             document.getElementById('manual-km').value = "";
         }
 
-        function updateCountdown() {
-            const diff = new Date(2026, 0, 31, 23, 59) - new Date();
-            if (diff > 0) {
-                const d = Math.floor(diff / 86400000);
-                document.getElementById('countdown-text').innerText = `${d} jours restants`;
-            } else { document.getElementById('countdown-text').innerText = "Défi Terminé"; }
-        }
-
-        function updateSyncDisplay() {
-            if(!userData.lastSync) return;
-            const diff = Math.floor((Date.now() - userData.lastSync) / 60000);
-            document.getElementById('last-sync-text').innerText = diff < 1 ? "Sync. à l'instant" : `Sync. il y a ${diff} min`;
+        function shareProgress() {
+            const msg = `🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 !%0A📊 *${Math.round((userData.totalKm/496)*100)}%*%0A🏁 Suis-nous : ${window.location.href}`;
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         async function deleteAccount() {
-            if(confirm("Supprimer définitivement ce profil et TOUTES ses données ?")) {
+            if(confirm("Supprimer définitivement ce profil ?")) {
                 await supabaseClient.from('scores').delete().eq('pseudo', myPseudo);
                 localStorage.clear();
                 location.reload();
             }
         }
 
-        function connectStrava() {
-            window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`;
-        }
+        function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
     </script>
 </body>
 </html>
