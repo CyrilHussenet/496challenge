@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Multi-Sport Edition</title>
+    <title>496 Challenge 2026 - Finisher Mode</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,13 +24,9 @@
 
         /* THÈME DYNAMIQUE */
         body { transition: background-color 1s ease, color 0.5s ease; }
-        
-        /* Mode Nuit */
         .dark-mode { background-color: #0a0a0a; color: white; }
         .dark-mode .card { background-color: #111827; border-color: #1f2937; }
         .dark-mode .text-muted { color: #9ca3af; }
-
-        /* Mode Jour */
         .light-mode { background-color: #f3f4f6; color: #111827; }
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .light-mode .text-muted { color: #4b5563; }
@@ -38,6 +34,20 @@
     </style>
 </head>
 <body class="dark-mode font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
+
+    <div id="congrats-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4 transition-all duration-700">
+        <div class="bg-gray-900 border border-yellow-500/50 p-10 rounded-[3rem] w-full max-w-lg text-center shadow-[0_0_80px_rgba(234,179,8,0.2)]">
+            <div class="text-7xl mb-6 animate-bounce">🏆</div>
+            <h2 class="text-4xl font-black italic uppercase tracking-tighter text-yellow-500 mb-2">LÉGENDAIRE !</h2>
+            <p class="text-white text-lg font-bold mb-4 uppercase tracking-widest">Félicitations <span id="congrats-pseudo" class="text-lime-500">Champion</span></p>
+            <p class="text-gray-400 text-xs mb-10 leading-relaxed uppercase tracking-widest">
+                Tu as survécu au Challenge 496.<br>Les 496 kilomètres sont officiellement vaincus.
+            </p>
+            <button onclick="closeCongrats()" class="bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase py-4 px-10 rounded-2xl shadow-xl transition-all active:scale-95">
+                Fermer et Savourer
+            </button>
+        </div>
+    </div>
 
     <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
         <div class="card p-8 rounded-[2.5rem] border w-full max-w-md text-center shadow-2xl">
@@ -54,7 +64,7 @@
     </div>
 
     <div id="main-content">
-        <nav class="p-4 backdrop-blur-md border-b sticky top-0 z-50 transition-colors duration-500">
+        <nav class="p-4 backdrop-blur-md border-b sticky top-0 z-50">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-500 italic tracking-tighter uppercase">496 Social</h1>
                 <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">
@@ -68,9 +78,7 @@
             <aside class="lg:col-span-3 order-2 lg:order-1">
                 <div class="card p-5 rounded-[2rem] border shadow-xl sticky top-24 transition-all">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                            <i class="fas fa-trophy text-[8px]"></i> Classement
-                        </h3>
+                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2"><i class="fas fa-trophy"></i> Classement</h3>
                         <span id="participant-count" class="bg-lime-500/10 text-lime-500 text-[9px] font-bold px-2 py-0.5 rounded-full border border-lime-500/20 uppercase tracking-tighter">0 Coureurs</span>
                     </div>
                     <div id="leaderboard" class="space-y-4"></div>
@@ -78,7 +86,7 @@
             </aside>
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
-                <div class="card p-8 rounded-[2.5rem] border shadow-2xl relative transition-all text-center md:text-left">
+                <div class="card p-8 rounded-[2.5rem] border shadow-2xl relative text-center md:text-left transition-all">
                     <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 gap-4">
                         <div>
                             <h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2>
@@ -97,11 +105,11 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center transition-all group active:scale-95 shadow-lg">
+                    <button onclick="connectStrava()" class="bg-[#FC4C02] hover:bg-[#ff5712] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all">
                         <svg class="w-8 h-8 mb-2 fill-white" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066l-2.084 4.116zM10.257 7.833l-3.064 6.134h4.118l1.018-2.043 1.022 2.043h4.112l-7.206-14z"/></svg>
                         <span class="font-black uppercase text-[10px] tracking-widest text-white">Sync Strava</span>
                     </button>
-                    <button onclick="document.getElementById('gpx-input').click()" class="card p-6 rounded-[2rem] border flex flex-col items-center justify-center transition-all border-gray-200 dark:border-gray-800">
+                    <button onclick="document.getElementById('gpx-input').click()" class="card p-6 rounded-[2rem] border flex flex-col items-center justify-center transition-all">
                         <i class="fas fa-route text-2xl text-lime-500 mb-2"></i>
                         <span class="font-black uppercase text-[10px] tracking-widest text-muted">Import GPX</span>
                         <input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)">
@@ -147,7 +155,7 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v9')) || { totalKm: 0, activities: [], ignoredIds: [] };
+        let userData = JSON.parse(localStorage.getItem('496_data_v10')) || { totalKm: 0, activities: [], ignoredIds: [] };
 
         window.addEventListener('DOMContentLoaded', async () => {
             applyTheme();
@@ -162,11 +170,8 @@
 
         function applyTheme() {
             const hour = new Date().getHours();
-            if (hour >= 8 && hour < 18) {
-                document.body.classList.replace('dark-mode', 'light-mode');
-            } else {
-                document.body.classList.replace('light-mode', 'dark-mode');
-            }
+            if (hour >= 8 && hour < 18) document.body.classList.replace('dark-mode', 'light-mode');
+            else document.body.classList.replace('light-mode', 'dark-mode');
         }
 
         async function checkAuth() {
@@ -208,7 +213,7 @@
                     userData.activities = data.activities_data || [];
                     userData.totalKm = parseFloat(data.distance) || 0;
                     userData.ignoredIds = data.ignored_ids || [];
-                    localStorage.setItem('496_data_v9', JSON.stringify(userData));
+                    localStorage.setItem('496_data_v10', JSON.stringify(userData));
                 }
             } else { return alert("Identifie-toi !"); }
             localStorage.setItem('496_pseudo', myPseudo);
@@ -217,6 +222,33 @@
 
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
 
+        // --- GESTION VICTOIRE ---
+        function showCongratsPopup() {
+            document.getElementById('congrats-modal').classList.remove('hidden');
+            document.getElementById('congrats-pseudo').innerText = myPseudo;
+            
+            // Animation confettis intense
+            var duration = 8 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 300 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 60 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        function closeCongrats() {
+            document.getElementById('congrats-modal').classList.add('hidden');
+            localStorage.setItem('496_congrats_seen', 'true');
+        }
+
+        // --- LOGIQUE METIER ---
         function getSportInfo(type) {
             switch(type) {
                 case 'TrailRun': return { icon: 'fa-mountain', label: 'Trail' };
@@ -238,7 +270,7 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v9', JSON.stringify(userData));
+            localStorage.setItem('496_data_v10', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -255,10 +287,7 @@
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
-                // MISE À JOUR DU COMPTEUR DE PARTICIPANTS
-                const count = data.length;
-                document.getElementById('participant-count').innerText = `${count} ${count > 1 ? 'Coureurs' : 'Coureur'}`;
-
+                document.getElementById('participant-count').innerText = `${data.length} ${data.length > 1 ? 'Challengers' : 'Challenger'}`;
                 document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
                     <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-500/10 p-2 rounded-xl border border-lime-500/20' : ''}">
                         <div class="flex items-center gap-2">
@@ -278,22 +307,22 @@
             document.getElementById('progress-fill').style.width = (progress * 100) + "%";
             document.getElementById('percent-display').innerText = Math.round(progress * 100) + "%";
 
+            // Vérification Victoire
+            if (total >= 496 && !localStorage.getItem('496_congrats_seen')) {
+                showCongratsPopup();
+            }
+
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => {
                 const sport = getSportInfo(a.type);
                 return `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group animate-fade-in transition-all">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-lime-500/10 rounded-full flex items-center justify-center text-lime-500">
-                            <i class="fas ${sport.icon}"></i>
-                        </div>
-                        <div>
-                            <p class="text-[9px] text-muted uppercase font-bold">${a.dateDisplay} • ${sport.label}</p>
-                            <p class="font-bold text-sm truncate w-32 md:w-48">${a.name}</p>
-                        </div>
+                        <div class="w-10 h-10 bg-lime-500/10 rounded-full flex items-center justify-center text-lime-500"><i class="fas ${sport.icon}"></i></div>
+                        <div><p class="text-[9px] text-muted uppercase font-bold">${a.dateDisplay} • ${sport.label}</p><p class="font-bold text-sm truncate w-32 md:w-48">${a.name}</p></div>
                     </div>
                     <div class="flex items-center gap-4">
                         <span class="text-lime-500 font-black text-lg">+${a.km.toFixed(1)}</span>
-                        <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 p-2 transition-all"><i class="fas fa-trash"></i></button>
+                        <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -332,7 +361,7 @@
 
         function deleteActivity(id) {
             const act = userData.activities.find(a => a.id === id);
-            if(confirm("Supprimer cette sortie ?")) {
+            if(confirm("Supprimer ?")) {
                 if (act.stravaId) userData.ignoredIds.push(act.stravaId);
                 userData.activities = userData.activities.filter(a => a.id !== id);
                 saveAndRefresh();
