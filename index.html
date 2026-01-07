@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Social Club</title>
+    <title>496 Challenge 2026 - Security Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,7 +28,7 @@
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .light-mode .text-muted { color: #4b5563; }
         .light-mode nav { background-color: rgba(255, 255, 255, 0.8); border-color: #e5e7eb; }
-        .blur-bg { filter: blur(12px); pointer-events: none; }
+        .blur-bg { filter: blur(15px); pointer-events: none; }
     </style>
 </head>
 <body class="dark-mode font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
@@ -36,36 +36,44 @@
     <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
         <div class="card p-8 rounded-[2.5rem] border w-full max-w-md text-center shadow-2xl">
             <div class="w-16 h-16 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-user-shield text-lime-400 text-2xl"></i>
+                <i class="fas fa-lock text-lime-400 text-2xl"></i>
             </div>
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Identification</h2>
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Authentification</h2>
+            
             <div class="space-y-4 text-left mt-6">
-                <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current cursor-pointer">
-                    <option value="">Chargement des profils...</option>
-                </select>
-                <div class="text-center text-[10px] text-gray-500 uppercase font-bold py-2">OU</div>
-                <input type="text" id="modal-new-pseudo" placeholder="Créer un nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current">
-                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 transition-all">Se connecter</button>
+                <div id="login-step-1">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Ton Profil</label>
+                    <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
+                        <option value="">Chargement...</option>
+                    </select>
+                    <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Code PIN (4 chiffres)</label>
+                    <input type="password" id="modal-pin" maxlength="4" inputmode="numeric" placeholder="Ex: 1234" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-2xl tracking-[1em] outline-none text-lime-500 font-bold">
+                </div>
+
+                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 transition-all mt-6">
+                    Valider et Entrer
+                </button>
             </div>
         </div>
     </div>
 
-    <div id="congrats-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4 transition-all duration-700">
+    <div id="congrats-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4">
         <div class="bg-gray-900 border border-yellow-500/50 p-10 rounded-[3rem] w-full max-w-lg text-center shadow-[0_0_80px_rgba(234,179,8,0.2)]">
             <div class="text-7xl mb-6">🏆</div>
-            <h2 class="text-4xl font-black italic uppercase text-yellow-500 mb-2">LÉGENDAIRE !</h2>
-            <p class="text-white text-lg font-bold mb-4 uppercase tracking-widest">Félicitations <span id="congrats-pseudo" class="text-lime-500"></span></p>
-            <p class="text-gray-400 text-xs mb-10 leading-relaxed uppercase tracking-widest">Tu as terminé le Challenge 496 !</p>
-            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl">Continuer</button>
+            <h2 class="text-4xl font-black italic uppercase text-yellow-500">BRAVO !</h2>
+            <p class="text-white text-lg font-bold mb-4 uppercase"><span id="congrats-pseudo"></span></p>
+            <p class="text-gray-400 text-xs mb-10 tracking-widest">TU AS VAINCU LES 496 KM !</p>
+            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl shadow-xl">Génial</button>
         </div>
     </div>
 
     <div id="main-content">
         <nav class="p-4 backdrop-blur-md border-b sticky top-0 z-50">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-black text-lime-500 italic tracking-tighter uppercase">496 Social</h1>
-                <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">
-                    <span id="current-user-name" class="text-[10px] font-black uppercase italic">...</span>
+                <h1 class="text-xl font-black text-lime-500 italic uppercase">496 Social</h1>
+                <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                    <span id="current-user-name" class="text-[10px] font-black uppercase italic text-lime-500">...</span>
                     <button onclick="logout()" class="hover:text-red-500 transition-colors"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
             </div>
@@ -75,10 +83,10 @@
             <aside class="lg:col-span-3 order-2 lg:order-1">
                 <div class="card p-5 rounded-[2rem] border shadow-xl sticky top-24">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-2"><i class="fas fa-trophy"></i> Classement</h3>
-                        <span id="participant-count" class="bg-lime-500/10 text-lime-500 text-[9px] font-bold px-2 py-0.5 rounded-full border border-lime-500/20 uppercase tracking-tighter">0</span>
+                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest"><i class="fas fa-trophy mr-2"></i>Classement</h3>
+                        <span id="participant-count" class="bg-lime-500/10 text-lime-500 text-[9px] font-bold px-2 py-0.5 rounded-full border border-lime-500/20 tracking-tighter">0</span>
                     </div>
-                    <div id="leaderboard" class="space-y-3 text-xs"></div>
+                    <div id="leaderboard" class="space-y-3"></div>
                 </div>
             </aside>
 
@@ -86,8 +94,8 @@
                 <div class="card p-8 rounded-[2.5rem] border shadow-2xl relative text-center md:text-left">
                     <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 gap-4">
                         <div>
-                            <h2 class="text-6xl font-black italic tracking-tighter" id="total-display">0.0</h2>
-                            <p class="text-muted font-bold uppercase text-[10px] tracking-widest mt-1">Km / 496</p>
+                            <h2 class="text-6xl font-black italic" id="total-display">0.0</h2>
+                            <p class="text-muted font-bold uppercase text-[10px] mt-1">Km Totaux / 496</p>
                         </div>
                         <span class="text-lime-500 font-black text-3xl" id="percent-display">0%</span>
                     </div>
@@ -98,15 +106,15 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="connectStrava()" class="bg-[#FC4C02] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fab fa-strava text-2xl text-white mb-2"></i><span class="text-white text-[10px] font-black uppercase">Strava</span></button>
-                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-export text-2xl text-lime-500 mb-2"></i><span class="text-[10px] font-black uppercase text-muted">GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
+                    <button onclick="connectStrava()" class="bg-[#FC4C02] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fab fa-strava text-2xl text-white mb-1"></i><span class="text-white text-[9px] font-black uppercase">Sync Strava</span></button>
+                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-export text-xl text-lime-500 mb-1"></i><span class="text-[9px] font-black uppercase text-muted">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
                 </div>
 
                 <div class="card p-6 rounded-[2rem] border space-y-4">
                     <div class="flex flex-col sm:flex-row gap-3">
                         <input type="date" id="manual-date" class="bg-gray-100 dark:bg-gray-800 border rounded-xl px-3 py-2 text-xs flex-1 text-current">
                         <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-100 dark:bg-gray-800 border rounded-xl px-3 py-2 text-xs w-full sm:w-24 text-current">
-                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl">Ajouter</button>
+                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl">Ajouter</button>
                     </div>
                 </div>
 
@@ -123,7 +131,6 @@
                         <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="filter: grayscale(100%); opacity: 0.3;"></i>
                     </div>
                     <p class="text-[10px] text-muted uppercase font-bold" id="medal-status">0%</p>
-                    <button onclick="deleteAccount()" class="mt-8 text-[8px] text-red-500 font-bold uppercase">Supprimer Profil</button>
                 </div>
             </aside>
         </main>
@@ -140,9 +147,9 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v12')) || { totalKm: 0, activities: [], ignoredIds: [], lastSync: null };
+        let userData = JSON.parse(localStorage.getItem('496_data_v13')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "" };
 
-        // --- DEMARRAGE ---
+        // --- INIT ---
         window.addEventListener('DOMContentLoaded', async () => {
             applyTheme();
             await checkAuth();
@@ -184,70 +191,84 @@
                     opt.value = u.pseudo; opt.textContent = u.pseudo;
                     select.appendChild(opt);
                 });
-            } catch (e) { console.error("Supabase Error:", e); }
+            } catch (e) { console.error(e); }
         }
 
         async function confirmLogin() {
             const selected = document.getElementById('modal-pseudo-select').value;
             const created = document.getElementById('modal-new-pseudo').value.trim();
+            const pinEntered = document.getElementById('modal-pin').value;
             const btn = document.getElementById('login-btn');
             
+            if (pinEntered.length < 4) return alert("Le code PIN doit comporter 4 chiffres !");
+            
             try {
-                btn.disabled = true; btn.innerText = "Chargement...";
+                btn.disabled = true; btn.innerText = "Vérification...";
+                
                 if (created) {
+                    // Création d'un nouveau profil avec PIN
+                    const { data: existing } = await supabaseClient.from('scores').select('pseudo').eq('pseudo', created).single();
+                    if (existing) {
+                        btn.disabled = false; btn.innerText = "Valider";
+                        return alert("Ce pseudo existe déjà, choisis-le dans la liste !");
+                    }
                     myPseudo = created;
-                    await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [] });
+                    await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [], pin: pinEntered });
+                    userData.pin = pinEntered;
                 } else if (selected) {
-                    myPseudo = selected;
-                    const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', myPseudo).single();
+                    // Vérification du PIN pour profil existant
+                    const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', selected).single();
                     if (data) {
+                        if (data.pin && data.pin !== pinEntered) {
+                            btn.disabled = false; btn.innerText = "Valider";
+                            return alert("Code PIN incorrect !");
+                        }
+                        myPseudo = selected;
                         userData.activities = data.activities_data || [];
                         userData.ignoredIds = data.ignored_ids || [];
+                        userData.pin = pinEntered;
                         userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-                        localStorage.setItem('496_data_v12', JSON.stringify(userData));
+                        localStorage.setItem('496_data_v13', JSON.stringify(userData));
                     }
                 } else {
-                    btn.disabled = false; btn.innerText = "Se connecter";
+                    btn.disabled = false; btn.innerText = "Valider";
                     return alert("Sélectionne un pseudo !");
                 }
                 localStorage.setItem('496_pseudo', myPseudo);
                 location.reload();
             } catch (e) {
-                alert("Erreur de connexion. Vérifie les colonnes Supabase.");
-                btn.disabled = false; btn.innerText = "Se connecter";
+                console.error(e);
+                alert("Erreur. Vérifie ta table Supabase (colonne 'pin' type text).");
+                btn.disabled = false; btn.innerText = "Valider";
             }
         }
 
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
 
-        // --- SYNCHRO ---
         async function syncWithCloud() {
             if(!myPseudo) return;
             try {
-                const finalDist = parseFloat(userData.totalKm.toFixed(2));
                 await supabaseClient.from('scores').upsert({ 
                     pseudo: myPseudo, 
-                    distance: finalDist,
+                    distance: parseFloat(userData.totalKm.toFixed(2)),
                     activities_data: userData.activities, 
-                    ignored_ids: userData.ignoredIds
+                    ignored_ids: userData.ignoredIds,
+                    pin: userData.pin // On renvoie le pin pour être sûr
                 });
                 refreshLeaderboard();
-            } catch (e) { console.error("Sync failed:", e); }
+            } catch (e) { console.error(e); }
         }
 
         async function refreshLeaderboard() {
-            try {
-                const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
-                if(data) {
-                    document.getElementById('participant-count').innerText = data.length;
-                    document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                        <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'text-lime-500 font-bold' : ''}">
-                            <span>${i+1}. ${u.pseudo}</span>
-                            <span>${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
-                        </div>
-                    `).join('');
-                }
-            } catch (e) { console.error("Leaderboard error:", e); }
+            const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
+            if(data) {
+                document.getElementById('participant-count').innerText = data.length;
+                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
+                    <div class="flex justify-between items-center text-xs ${u.pseudo === myPseudo ? 'text-lime-500 font-bold' : ''}">
+                        <span>${i+1}. ${u.pseudo}</span>
+                        <span>${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
+                    </div>`).join('');
+            }
         }
 
         function updateUI() {
@@ -279,7 +300,6 @@
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}%`;
         }
 
-        // --- STRAVA & GPX ---
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -307,14 +327,14 @@
                     });
                     saveAndRefresh();
                     window.history.pushState({}, document.title, REDIRECT_URI);
-                } catch(e) { console.error("Strava error", e); }
+                } catch(e) { console.error(e); }
             }
         }
 
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v12', JSON.stringify(userData));
+            localStorage.setItem('496_data_v13', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -333,7 +353,7 @@
             const date = document.getElementById('manual-date').value;
             if (km > 0 && date) {
                 userData.activities.push({ 
-                    id: Date.now(), km: km, name: "Saisie Manuelle", dateISO: new Date(date).toISOString(), type: 'Run',
+                    id: Date.now(), km: km, name: "Manuel", dateISO: new Date(date).toISOString(), type: 'Run',
                     dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
                 });
                 saveAndRefresh();
@@ -357,7 +377,7 @@
         }
 
         function closeCongrats() { document.getElementById('congrats-modal').classList.add('hidden'); localStorage.setItem('496_congrats_seen', 'true'); }
-        function shareProgress() { window.open(`https://wa.me/?text=🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le challenge 496 ! Suis-nous ici : ${window.location.href}`, '_blank'); }
+        function shareProgress() { window.open(`https://wa.me/?text=🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le challenge 496 ! ${window.location.href}`, '_blank'); }
         async function deleteAccount() { if(confirm("Supprimer profil ?")) { await supabaseClient.from('scores').delete().eq('pseudo', myPseudo); localStorage.clear(); location.reload(); } }
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
     </script>
