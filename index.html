@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Security Edition</title>
+    <title>496 Challenge 2026 - Social Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,7 +28,7 @@
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .light-mode .text-muted { color: #4b5563; }
         .light-mode nav { background-color: rgba(255, 255, 255, 0.8); border-color: #e5e7eb; }
-        .blur-bg { filter: blur(15px); pointer-events: none; }
+        .blur-bg { filter: blur(20px); pointer-events: none; }
     </style>
 </head>
 <body class="dark-mode font-sans selection:bg-lime-500 selection:text-black overflow-x-hidden">
@@ -36,35 +36,30 @@
     <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
         <div class="card p-8 rounded-[2.5rem] border w-full max-w-md text-center shadow-2xl">
             <div class="w-16 h-16 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-lock text-lime-400 text-2xl"></i>
+                <i class="fas fa-id-badge text-lime-400 text-2xl"></i>
             </div>
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Authentification</h2>
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Connexion</h2>
             
             <div class="space-y-4 text-left mt-6">
                 <div id="login-step-1">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Ton Profil</label>
-                    <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
-                        <option value="">Chargement...</option>
-                    </select>
+                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Choisir un profil</label>
+                    <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4 cursor-pointer"></select>
                     <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Code PIN (4 chiffres)</label>
-                    <input type="password" id="modal-pin" maxlength="4" inputmode="numeric" placeholder="Ex: 1234" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-2xl tracking-[1em] outline-none text-lime-500 font-bold">
+                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">PIN de sécurité</label>
+                    <input type="password" id="modal-pin" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-2xl tracking-[1em] outline-none text-lime-500 font-bold">
                 </div>
-
-                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 transition-all mt-6">
-                    Valider et Entrer
-                </button>
+                <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg transition-all mt-6">Entrer</button>
             </div>
         </div>
     </div>
 
     <div id="congrats-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4">
         <div class="bg-gray-900 border border-yellow-500/50 p-10 rounded-[3rem] w-full max-w-lg text-center shadow-[0_0_80px_rgba(234,179,8,0.2)]">
-            <div class="text-7xl mb-6">🏆</div>
-            <h2 class="text-4xl font-black italic uppercase text-yellow-500">BRAVO !</h2>
+            <div class="text-7xl mb-6">🏅</div>
+            <h2 class="text-4xl font-black italic uppercase text-yellow-500">TERMINÉ !</h2>
             <p class="text-white text-lg font-bold mb-4 uppercase"><span id="congrats-pseudo"></span></p>
-            <p class="text-gray-400 text-xs mb-10 tracking-widest">TU AS VAINCU LES 496 KM !</p>
-            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl shadow-xl">Génial</button>
+            <p class="text-gray-400 text-[10px] mb-10 tracking-widest uppercase">Tu es un finisher du challenge 496</p>
+            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl shadow-xl">Bravo</button>
         </div>
     </div>
 
@@ -72,7 +67,7 @@
         <nav class="p-4 backdrop-blur-md border-b sticky top-0 z-50">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-500 italic uppercase">496 Social</h1>
-                <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">
                     <span id="current-user-name" class="text-[10px] font-black uppercase italic text-lime-500">...</span>
                     <button onclick="logout()" class="hover:text-red-500 transition-colors"><i class="fas fa-power-off text-xs"></i></button>
                 </div>
@@ -82,11 +77,18 @@
         <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
             <aside class="lg:col-span-3 order-2 lg:order-1">
                 <div class="card p-5 rounded-[2rem] border shadow-xl sticky top-24">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest"><i class="fas fa-trophy mr-2"></i>Classement</h3>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest">Classement</h3>
                         <span id="participant-count" class="bg-lime-500/10 text-lime-500 text-[9px] font-bold px-2 py-0.5 rounded-full border border-lime-500/20 tracking-tighter">0</span>
                     </div>
-                    <div id="leaderboard" class="space-y-3"></div>
+                    <div id="leaderboard" class="space-y-6"></div>
+                    
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-2 opacity-50">
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-lime-500"></span> Course</div>
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Trail</div>
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Marche</div>
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span> Vélo</div>
+                    </div>
                 </div>
             </aside>
 
@@ -95,26 +97,26 @@
                     <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 gap-4">
                         <div>
                             <h2 class="text-6xl font-black italic" id="total-display">0.0</h2>
-                            <p class="text-muted font-bold uppercase text-[10px] mt-1">Km Totaux / 496</p>
+                            <p class="text-muted font-bold uppercase text-[10px] mt-1">Distance / 496 Km</p>
                         </div>
                         <span class="text-lime-500 font-black text-3xl" id="percent-display">0%</span>
                     </div>
                     <div class="w-full bg-gray-200 dark:bg-gray-800 h-4 rounded-full overflow-hidden mb-6">
                         <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div>
                     </div>
-                    <div class="flex justify-center"><button onclick="shareProgress()" class="bg-[#25D366] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase shadow-lg"><i class="fab fa-whatsapp mr-2"></i> Partager</button></div>
+                    <div class="flex justify-center"><button onclick="shareProgress()" class="bg-[#25D366] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95 transition-all"><i class="fab fa-whatsapp mr-2"></i> WhatsApp</button></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="connectStrava()" class="bg-[#FC4C02] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fab fa-strava text-2xl text-white mb-1"></i><span class="text-white text-[9px] font-black uppercase">Sync Strava</span></button>
-                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-export text-xl text-lime-500 mb-1"></i><span class="text-[9px] font-black uppercase text-muted">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
+                    <button onclick="connectStrava()" class="bg-[#FC4C02] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all"><i class="fab fa-strava text-2xl text-white mb-1"></i><span class="text-white text-[9px] font-black uppercase">Sync Strava</span></button>
+                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-import text-xl text-lime-500 mb-1"></i><span class="text-[9px] font-black uppercase text-muted">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
                 </div>
 
                 <div class="card p-6 rounded-[2rem] border space-y-4">
                     <div class="flex flex-col sm:flex-row gap-3">
                         <input type="date" id="manual-date" class="bg-gray-100 dark:bg-gray-800 border rounded-xl px-3 py-2 text-xs flex-1 text-current">
                         <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-100 dark:bg-gray-800 border rounded-xl px-3 py-2 text-xs w-full sm:w-24 text-current">
-                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl">Ajouter</button>
+                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-2 rounded-xl transition-all">Ajouter</button>
                     </div>
                 </div>
 
@@ -130,7 +132,8 @@
                         </svg>
                         <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="filter: grayscale(100%); opacity: 0.3;"></i>
                     </div>
-                    <p class="text-[10px] text-muted uppercase font-bold" id="medal-status">0%</p>
+                    <p class="text-[10px] text-muted uppercase font-bold" id="medal-status">0% Complété</p>
+                    <button onclick="deleteAccount()" class="mt-8 text-[8px] text-red-500 font-bold uppercase opacity-50 hover:opacity-100">Quitter le Challenge</button>
                 </div>
             </aside>
         </main>
@@ -147,9 +150,8 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v13')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "" };
+        let userData = JSON.parse(localStorage.getItem('496_data_v15')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
 
-        // --- INIT ---
         window.addEventListener('DOMContentLoaded', async () => {
             applyTheme();
             await checkAuth();
@@ -185,7 +187,7 @@
             try {
                 const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
                 const select = document.getElementById('modal-pseudo-select');
-                select.innerHTML = `<option value="">-- Choisir mon profil --</option>`;
+                select.innerHTML = `<option value="">-- Choisir un profil --</option>`;
                 if (data) data.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.pseudo; opt.textContent = u.pseudo;
@@ -200,47 +202,33 @@
             const pinEntered = document.getElementById('modal-pin').value;
             const btn = document.getElementById('login-btn');
             
-            if (pinEntered.length < 4) return alert("Le code PIN doit comporter 4 chiffres !");
+            if (pinEntered.length < 4) return alert("PIN à 4 chiffres requis !");
             
             try {
-                btn.disabled = true; btn.innerText = "Vérification...";
-                
+                btn.disabled = true; btn.innerText = "Connexion...";
                 if (created) {
-                    // Création d'un nouveau profil avec PIN
-                    const { data: existing } = await supabaseClient.from('scores').select('pseudo').eq('pseudo', created).single();
-                    if (existing) {
-                        btn.disabled = false; btn.innerText = "Valider";
-                        return alert("Ce pseudo existe déjà, choisis-le dans la liste !");
-                    }
                     myPseudo = created;
-                    await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [], pin: pinEntered });
+                    await supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: 0, activities_data: [], ignored_ids: [], pin: pinEntered, avatar_url: "" });
                     userData.pin = pinEntered;
                 } else if (selected) {
-                    // Vérification du PIN pour profil existant
                     const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', selected).single();
                     if (data) {
                         if (data.pin && data.pin !== pinEntered) {
-                            btn.disabled = false; btn.innerText = "Valider";
-                            return alert("Code PIN incorrect !");
+                            btn.disabled = false; btn.innerText = "Entrer";
+                            return alert("PIN incorrect !");
                         }
                         myPseudo = selected;
                         userData.activities = data.activities_data || [];
                         userData.ignoredIds = data.ignored_ids || [];
+                        userData.avatarUrl = data.avatar_url || "";
                         userData.pin = pinEntered;
                         userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-                        localStorage.setItem('496_data_v13', JSON.stringify(userData));
+                        localStorage.setItem('496_data_v15', JSON.stringify(userData));
                     }
-                } else {
-                    btn.disabled = false; btn.innerText = "Valider";
-                    return alert("Sélectionne un pseudo !");
                 }
                 localStorage.setItem('496_pseudo', myPseudo);
                 location.reload();
-            } catch (e) {
-                console.error(e);
-                alert("Erreur. Vérifie ta table Supabase (colonne 'pin' type text).");
-                btn.disabled = false; btn.innerText = "Valider";
-            }
+            } catch (e) { btn.disabled = false; btn.innerText = "Entrer"; }
         }
 
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
@@ -253,21 +241,47 @@
                     distance: parseFloat(userData.totalKm.toFixed(2)),
                     activities_data: userData.activities, 
                     ignored_ids: userData.ignoredIds,
-                    pin: userData.pin // On renvoie le pin pour être sûr
+                    pin: userData.pin,
+                    avatar_url: userData.avatarUrl // On synchronise l'avatar URL
                 });
                 refreshLeaderboard();
             } catch (e) { console.error(e); }
         }
 
+        // --- CLASSEMENT AVEC AVATARS & SANS NUMÉROS ---
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
                 document.getElementById('participant-count').innerText = data.length;
-                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                    <div class="flex justify-between items-center text-xs ${u.pseudo === myPseudo ? 'text-lime-500 font-bold' : ''}">
-                        <span>${i+1}. ${u.pseudo}</span>
-                        <span>${(parseFloat(u.distance) || 0).toFixed(1)} km</span>
-                    </div>`).join('');
+                document.getElementById('leaderboard').innerHTML = data.map((u) => {
+                    const stats = { Run: 0, TrailRun: 0, Walk: 0, Ride: 0 };
+                    (u.activities_data || []).forEach(a => {
+                        const t = a.type || 'Run';
+                        if(stats[t] !== undefined) stats[t] += a.km;
+                    });
+
+                    // Si pas d'avatar, on met une icône par défaut
+                    const avatar = u.avatar_url 
+                        ? `<img src="${u.avatar_url}" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-800 object-cover shadow-sm">`
+                        : `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-[10px]"><i class="fas fa-user"></i></div>`;
+
+                    return `
+                    <div class="space-y-2 ${u.pseudo === myPseudo ? 'bg-lime-500/5 p-2 rounded-xl border border-lime-500/10' : ''}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                ${avatar}
+                                <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-500' : 'text-current'}">${u.pseudo}</span>
+                            </div>
+                            <span class="text-xs font-black">${(parseFloat(u.distance) || 0).toFixed(1)} <span class="text-[9px] text-muted font-normal">KM</span></span>
+                        </div>
+                        <div class="flex w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-lime-500" style="width: ${Math.min((stats.Run/496)*100, 100)}%"></div>
+                            <div class="h-full bg-orange-500" style="width: ${Math.min((stats.TrailRun/496)*100, 100)}%"></div>
+                            <div class="h-full bg-blue-500" style="width: ${Math.min((stats.Walk/496)*100, 100)}%"></div>
+                            <div class="h-full bg-violet-500" style="width: ${Math.min((stats.Ride/496)*100, 100)}%"></div>
+                        </div>
+                    </div>`;
+                }).join('');
             }
         }
 
@@ -285,19 +299,32 @@
             }
 
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
-                <div class="card p-4 rounded-2xl border flex justify-between items-center group animate-fade-in">
-                    <div><p class="text-[9px] text-muted font-bold">${a.dateDisplay} • ${a.type || 'Course'}</p><p class="font-bold text-sm">${a.name}</p></div>
+                <div class="card p-4 rounded-2xl border flex justify-between items-center group animate-fade-in transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500">
+                             <i class="fas ${getIcon(a.type)} text-[12px]"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-muted font-bold uppercase">${a.dateDisplay} • ${a.type || 'Course'}</p>
+                            <p class="font-bold text-sm truncate w-32 md:w-48">${a.name}</p>
+                        </div>
+                    </div>
                     <div class="flex items-center gap-4">
-                        <span class="text-lime-500 font-black">+${a.km.toFixed(1)}</span>
+                        <span class="text-lime-500 font-black text-base">+${a.km.toFixed(1)}</span>
                         <button onclick="deleteActivity(${a.id})" class="opacity-0 group-hover:opacity-100 text-red-500 p-2"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`).join('');
 
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (progress * 283);
-            const icon = document.getElementById('medal-icon-svg');
-            icon.style.filter = `grayscale(${100 - (progress * 100)}%)`;
-            icon.style.opacity = 0.3 + (progress * 0.7);
+            document.getElementById('medal-icon-svg').style.filter = `grayscale(${100 - (progress * 100)}%) opacity(${0.3 + (progress * 0.7)})`;
             document.getElementById('medal-status').innerText = `${Math.round(progress * 100)}%`;
+        }
+
+        function getIcon(type) {
+            if(type === 'TrailRun') return 'fa-mountain';
+            if(type === 'Walk') return 'fa-walking';
+            if(type === 'Ride') return 'fa-bicycle';
+            return 'fa-running';
         }
 
         async function checkStravaCallback() {
@@ -310,6 +337,12 @@
                         body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
+                    
+                    // ON RÉCUPÈRE LA PHOTO DE PROFIL ICI
+                    if (tokenData.athlete && tokenData.athlete.profile_medium) {
+                        userData.avatarUrl = tokenData.athlete.profile_medium;
+                    }
+
                     const after = Math.floor(new Date('2026-01-01').getTime() / 1000);
                     const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}`, {
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
@@ -334,7 +367,7 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v13', JSON.stringify(userData));
+            localStorage.setItem('496_data_v15', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
@@ -377,7 +410,7 @@
         }
 
         function closeCongrats() { document.getElementById('congrats-modal').classList.add('hidden'); localStorage.setItem('496_congrats_seen', 'true'); }
-        function shareProgress() { window.open(`https://wa.me/?text=🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le challenge 496 ! ${window.location.href}`, '_blank'); }
+        function shareProgress() { window.open(`https://wa.me/?text=🏃‍♂️ *${myPseudo}* : *${userData.totalKm.toFixed(1)} km* sur le 496 !🏁 ${window.location.href}`, '_blank'); }
         async function deleteAccount() { if(confirm("Supprimer profil ?")) { await supabaseClient.from('scores').delete().eq('pseudo', myPseudo); localStorage.clear(); location.reload(); } }
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
     </script>
