@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>496 Challenge 2026 - Social Edition</title>
+    <title>496 Challenge 2026 - All-Cycling Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -36,18 +36,13 @@
     <div id="login-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl hidden px-4">
         <div class="card p-8 rounded-[2.5rem] border w-full max-w-md text-center shadow-2xl">
             <div class="w-16 h-16 bg-lime-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fas fa-id-badge text-lime-400 text-2xl"></i>
+                <i class="fas fa-lock text-lime-400 text-2xl"></i>
             </div>
-            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Connexion</h2>
-            
+            <h2 class="text-2xl font-black italic uppercase tracking-tighter mb-2">Identification</h2>
             <div class="space-y-4 text-left mt-6">
-                <div id="login-step-1">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">Choisir un profil</label>
-                    <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4 cursor-pointer"></select>
-                    <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
-                    <label class="text-[9px] font-bold text-gray-500 uppercase ml-2">PIN de sécurité</label>
-                    <input type="password" id="modal-pin" maxlength="4" inputmode="numeric" placeholder="••••" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-2xl tracking-[1em] outline-none text-lime-500 font-bold">
-                </div>
+                <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4 cursor-pointer"></select>
+                <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-sm outline-none text-current mb-4">
+                <input type="password" id="modal-pin" maxlength="4" inputmode="numeric" placeholder="Code PIN (4 chiffres)" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl px-4 py-4 text-center text-xl outline-none text-lime-500 font-bold">
                 <button id="login-btn" onclick="confirmLogin()" class="w-full bg-lime-600 hover:bg-lime-500 text-black font-black uppercase py-4 rounded-2xl shadow-lg transition-all mt-6">Entrer</button>
             </div>
         </div>
@@ -55,11 +50,11 @@
 
     <div id="congrats-modal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl hidden px-4">
         <div class="bg-gray-900 border border-yellow-500/50 p-10 rounded-[3rem] w-full max-w-lg text-center shadow-[0_0_80px_rgba(234,179,8,0.2)]">
-            <div class="text-7xl mb-6">🏅</div>
-            <h2 class="text-4xl font-black italic uppercase text-yellow-500">TERMINÉ !</h2>
+            <div class="text-7xl mb-6">🏆</div>
+            <h2 class="text-4xl font-black italic uppercase text-yellow-500">EXCEPTIONNEL !</h2>
             <p class="text-white text-lg font-bold mb-4 uppercase"><span id="congrats-pseudo"></span></p>
-            <p class="text-gray-400 text-[10px] mb-10 tracking-widest uppercase">Tu es un finisher du challenge 496</p>
-            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl shadow-xl">Bravo</button>
+            <p class="text-gray-400 text-[10px] mb-10 tracking-widest uppercase">Défi 496 Km : Validé</p>
+            <button onclick="closeCongrats()" class="bg-yellow-500 text-black font-black uppercase py-4 px-10 rounded-2xl">Savourer</button>
         </div>
     </div>
 
@@ -83,21 +78,21 @@
                     </div>
                     <div id="leaderboard" class="space-y-6"></div>
                     
-                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-2 opacity-50">
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-2 opacity-70">
                         <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-lime-500"></span> Course</div>
                         <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Trail</div>
-                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Marche</div>
-                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Vélo</div>
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Marche</div>
+                        <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Vélos (Tous)</div>
                     </div>
                 </div>
             </aside>
 
             <div class="lg:col-span-6 order-1 lg:order-2 space-y-6">
-                <div class="card p-8 rounded-[2.5rem] border shadow-2xl relative text-center md:text-left">
+                <div class="card p-8 rounded-[2.5rem] border shadow-2xl relative text-center md:text-left transition-all">
                     <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 gap-4">
                         <div>
                             <h2 class="text-6xl font-black italic" id="total-display">0.0</h2>
-                            <p class="text-muted font-bold uppercase text-[10px] mt-1">Distance / 496 Km</p>
+                            <p class="text-muted font-bold uppercase text-[10px] mt-1">Cumul / 496 Km</p>
                         </div>
                         <span class="text-lime-500 font-black text-3xl" id="percent-display">0%</span>
                     </div>
@@ -109,7 +104,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <button onclick="connectStrava()" class="bg-[#FC4C02] p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all"><i class="fab fa-strava text-2xl text-white mb-1"></i><span class="text-white text-[9px] font-black uppercase">Sync Strava</span></button>
-                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-import text-xl text-lime-500 mb-1"></i><span class="text-[9px] font-black uppercase text-muted">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
+                    <button onclick="document.getElementById('gpx-input').click()" class="card border p-6 rounded-[2rem] flex flex-col items-center justify-center shadow-lg"><i class="fas fa-file-export text-xl text-lime-500 mb-1"></i><span class="text-[9px] font-black uppercase text-muted">Import GPX</span><input type="file" id="gpx-input" class="hidden" accept=".gpx" onchange="handleGPX(this)"></button>
                 </div>
 
                 <div class="card p-6 rounded-[2rem] border space-y-4">
@@ -132,8 +127,8 @@
                         </svg>
                         <i id="medal-icon-svg" class="fas fa-medal text-4xl text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="filter: grayscale(100%); opacity: 0.3;"></i>
                     </div>
-                    <p class="text-[10px] text-muted uppercase font-bold" id="medal-status">0% Complété</p>
-                    <button onclick="deleteAccount()" class="mt-8 text-[8px] text-red-500 font-bold uppercase opacity-50 hover:opacity-100">Quitter le Challenge</button>
+                    <p class="text-[10px] text-muted uppercase font-bold" id="medal-status">0%</p>
+                    <button onclick="deleteAccount()" class="mt-8 text-[8px] text-red-500 font-bold uppercase opacity-40 hover:opacity-100">Quitter Challenge</button>
                 </div>
             </aside>
         </main>
@@ -150,7 +145,7 @@
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         let myPseudo = localStorage.getItem('496_pseudo') || "";
-        let userData = JSON.parse(localStorage.getItem('496_data_v15')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
+        let userData = JSON.parse(localStorage.getItem('496_data_v17')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
 
         window.addEventListener('DOMContentLoaded', async () => {
             applyTheme();
@@ -187,7 +182,7 @@
             try {
                 const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
                 const select = document.getElementById('modal-pseudo-select');
-                select.innerHTML = `<option value="">-- Choisir un profil --</option>`;
+                select.innerHTML = `<option value="">-- Sélectionner Profil --</option>`;
                 if (data) data.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.pseudo; opt.textContent = u.pseudo;
@@ -202,7 +197,7 @@
             const pinEntered = document.getElementById('modal-pin').value;
             const btn = document.getElementById('login-btn');
             
-            if (pinEntered.length < 4) return alert("PIN à 4 chiffres requis !");
+            if (pinEntered.length < 4) return alert("PIN à 4 chiffres !");
             
             try {
                 btn.disabled = true; btn.innerText = "Connexion...";
@@ -223,7 +218,7 @@
                         userData.avatarUrl = data.avatar_url || "";
                         userData.pin = pinEntered;
                         userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-                        localStorage.setItem('496_data_v15', JSON.stringify(userData));
+                        localStorage.setItem('496_data_v17', JSON.stringify(userData));
                     }
                 }
                 localStorage.setItem('496_pseudo', myPseudo);
@@ -242,27 +237,30 @@
                     activities_data: userData.activities, 
                     ignored_ids: userData.ignoredIds,
                     pin: userData.pin,
-                    avatar_url: userData.avatarUrl // On synchronise l'avatar URL
+                    avatar_url: userData.avatarUrl
                 });
                 refreshLeaderboard();
             } catch (e) { console.error(e); }
         }
 
-        // --- CLASSEMENT AVEC AVATARS & SANS NUMÉROS ---
+        // --- CLASSEMENT MULTI-CYCLISME ---
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if(data) {
                 document.getElementById('participant-count').innerText = data.length;
                 document.getElementById('leaderboard').innerHTML = data.map((u) => {
                     const stats = { Run: 0, TrailRun: 0, Walk: 0, Ride: 0 };
+                    const cyclingTypes = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide', 'CyclocrossRide', 'Handcycle', 'Velomobile'];
+
                     (u.activities_data || []).forEach(a => {
                         const t = a.type || 'Run';
-                        if(stats[t] !== undefined) stats[t] += a.km;
+                        if (cyclingTypes.includes(t)) stats.Ride += a.km;
+                        else if (stats[t] !== undefined) stats[t] += a.km;
+                        else stats.Run += a.km;
                     });
 
-                    // Si pas d'avatar, on met une icône par défaut
                     const avatar = u.avatar_url 
-                        ? `<img src="${u.avatar_url}" class="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-800 object-cover shadow-sm">`
+                        ? `<img src="${u.avatar_url}" class="w-8 h-8 rounded-full object-cover shadow-sm">`
                         : `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500 text-[10px]"><i class="fas fa-user"></i></div>`;
 
                     return `
@@ -277,8 +275,8 @@
                         <div class="flex w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div class="h-full bg-lime-500" style="width: ${Math.min((stats.Run/496)*100, 100)}%"></div>
                             <div class="h-full bg-orange-500" style="width: ${Math.min((stats.TrailRun/496)*100, 100)}%"></div>
-                            <div class="h-full bg-blue-500" style="width: ${Math.min((stats.Walk/496)*100, 100)}%"></div>
-                            <div class="h-full bg-violet-500" style="width: ${Math.min((stats.Ride/496)*100, 100)}%"></div>
+                            <div class="h-full bg-cyan-400" style="width: ${Math.min((stats.Walk/496)*100, 100)}%"></div>
+                            <div class="h-full bg-red-500" style="width: ${Math.min((stats.Ride/496)*100, 100)}%"></div>
                         </div>
                     </div>`;
                 }).join('');
@@ -305,7 +303,7 @@
                              <i class="fas ${getIcon(a.type)} text-[12px]"></i>
                         </div>
                         <div>
-                            <p class="text-[9px] text-muted font-bold uppercase">${a.dateDisplay} • ${a.type || 'Course'}</p>
+                            <p class="text-[9px] text-muted font-bold uppercase">${a.dateDisplay} • ${getLabel(a.type)}</p>
                             <p class="font-bold text-sm truncate w-32 md:w-48">${a.name}</p>
                         </div>
                     </div>
@@ -321,10 +319,21 @@
         }
 
         function getIcon(type) {
+            const cycling = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide', 'CyclocrossRide', 'Handcycle', 'Velomobile'];
+            if(cycling.includes(type)) return 'fa-bicycle';
             if(type === 'TrailRun') return 'fa-mountain';
             if(type === 'Walk') return 'fa-walking';
-            if(type === 'Ride') return 'fa-bicycle';
             return 'fa-running';
+        }
+
+        function getLabel(type) {
+            if(type === 'VirtualRide') return 'Vélo Virtuel';
+            if(type === 'EBikeRide') return 'VTT Électrique';
+            if(type === 'MountainBikeRide') return 'VTT';
+            if(type === 'Ride') return 'Vélo';
+            if(type === 'TrailRun') return 'Trail';
+            if(type === 'Walk') return 'Marche';
+            return 'Course';
         }
 
         async function checkStravaCallback() {
@@ -337,8 +346,6 @@
                         body: JSON.stringify({ client_id: STRAVA_CLIENT_ID, client_secret: STRAVA_CLIENT_SECRET, code: code, grant_type: 'authorization_code' })
                     });
                     const tokenData = await tokenResp.json();
-                    
-                    // ON RÉCUPÈRE LA PHOTO DE PROFIL ICI
                     if (tokenData.athlete && tokenData.athlete.profile_medium) {
                         userData.avatarUrl = tokenData.athlete.profile_medium;
                     }
@@ -348,7 +355,11 @@
                         headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
                     });
                     const activities = await actResp.json();
-                    const allowed = ['Run', 'TrailRun', 'Walk', 'Ride'];
+                    
+                    const allowedCycling = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide', 'CyclocrossRide', 'Handcycle', 'Velomobile'];
+                    const allowedOther = ['Run', 'TrailRun', 'Walk'];
+                    const allowed = [...allowedCycling, ...allowedOther];
+
                     activities.forEach(a => {
                         const type = a.sport_type || a.type;
                         if(allowed.includes(type) && !userData.activities.find(ex => ex.stravaId === a.id) && !userData.ignoredIds.includes(a.id)) {
@@ -367,7 +378,7 @@
         function saveAndRefresh() {
             userData.activities.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
             userData.totalKm = userData.activities.reduce((sum, a) => sum + a.km, 0);
-            localStorage.setItem('496_data_v15', JSON.stringify(userData));
+            localStorage.setItem('496_data_v17', JSON.stringify(userData));
             updateUI();
             syncWithCloud();
         }
