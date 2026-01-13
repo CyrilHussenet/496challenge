@@ -58,6 +58,10 @@
                     </div>
                     <span class="text-lime-400 font-black text-3xl" id="percent-display">0%</span>
                 </div>
+                <div id="delta-container" class="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-800 border border-gray-700">
+    <span id="delta-value" class="text-[11px] font-black italic text-gray-400">--</span>
+    <span id="delta-label" class="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">vs Cible</span>
+                </div>
                 <div class="w-full bg-gray-800 h-4 rounded-full overflow-hidden relative z-10">
                     <div id="progress-fill" class="progress-bar-smooth h-full bg-lime-500 w-0"></div>
                 </div>
@@ -193,13 +197,38 @@
 
         // --- INTERFACE ---
 
-        function updateUI() {
-            document.getElementById('total-display').innerText = userData.totalKm.toFixed(1);
-            const percent = Math.min((userData.totalKm / 496) * 100, 100);
+       function updateUI() {
+            const total = userData.totalKm;
+            document.getElementById('total-display').innerText = total.toFixed(1);
+            const percent = Math.min((total / 496) * 100, 100);
             document.getElementById('progress-fill').style.width = percent + "%";
             document.getElementById('percent-display').innerText = Math.round(percent) + "%";
 
-            // Liste
+            // --- CALCUL DU DELTA (Avance/Retard) ---
+            const now = new Date();
+            const day = now.getDate();
+            const month = now.getMonth(); // 0 = Janvier
+            
+            // Calcul de la cible théorique pour aujourd'hui
+            // Formule : (n * (n + 1)) / 2
+            const target = (month === 0) ? (day * (day + 1)) / 2 : (month > 0 ? 496 : 0);
+            const diff = total - target;
+
+            const deltaValue = document.getElementById('delta-value');
+            const deltaLabel = document.getElementById('delta-label');
+
+            if (deltaValue && deltaLabel) {
+                // Affichage de la valeur avec signe + ou -
+                deltaValue.innerText = (diff >= 0 ? "+" : "") + diff.toFixed(1) + " KM";
+                
+                // Couleur : Vert si avance, Rouge si retard
+                deltaValue.className = `text-[11px] font-black italic ${diff >= 0 ? "text-lime-400" : "text-red-500"}`;
+                
+                // Label dynamique selon le jour
+                deltaLabel.innerText = `vs Cible J-${day}`;
+            }
+
+            // --- LISTE DES ACTIVITÉS ---
             const list = document.getElementById('activities-list');
             list.innerHTML = userData.activities.map(a => `
                 <div class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 flex justify-between items-center group">
@@ -214,46 +243,13 @@
                 </div>
             `).join('');
 
-            // Médaille
-            if(userData.totalKm >= 496) {
+            // --- GESTION MÉDAILLE ---
+            if(total >= 496) {
                 document.getElementById('medal-card').classList.remove('grayscale', 'opacity-20');
                 document.getElementById('medal-card').classList.add('medal-unlocked', 'border-yellow-500');
                 document.getElementById('medal-text').innerText = "Vainqueur du 496 !";
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors:['#84cc16','#ffd700','#ffffff'] });
             }
-        }
-
-        async function syncWithCloud() {
-            if(myPseudo) {
-                await supabase.from('scores').upsert({ pseudo: myPseudo, distance: userData.totalKm });
-                refreshLeaderboard();
-            }
-        }
-
-        async function refreshLeaderboard() {
-            const { data } = await supabase.from('scores').select('*').order('distance', { ascending: false });
-            if(data) {
-                document.getElementById('leaderboard').innerHTML = data.map((u, i) => `
-                    <div class="flex justify-between items-center ${u.pseudo === myPseudo ? 'bg-lime-900/10 p-2 rounded-xl border border-lime-500/20' : ''}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-bold text-gray-600">${i+1}.</span>
-                            <span class="text-xs font-bold ${u.pseudo === myPseudo ? 'text-lime-400' : 'text-gray-300'}">${u.pseudo}</span>
-                        </div>
-                        <span class="text-xs font-black">${u.distance.toFixed(1)} km</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function drawMap(points) {
-            document.getElementById('map-container').classList.remove('hidden');
-            if(!map) {
-                map = L.map('map', {zoomControl: false}).setView(points[0], 13);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-            }
-            if(polyline) map.removeLayer(polyline);
-            polyline = L.polyline(points, {color: '#84cc16', weight: 4, opacity: 0.8}).addTo(map);
-            map.fitBounds(polyline.getBounds());
         }
     </script>
 </body>
