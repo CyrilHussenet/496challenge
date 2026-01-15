@@ -74,6 +74,17 @@
                     </div>
                 </div>
                 <div id="encouragement-msg" class="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-lime-400 milestone-pulse text-center">Prêt pour la suite ?</div>
+
+                <div class="grid grid-cols-2 gap-8 mt-8 w-full max-w-xs border-t border-gray-100/10 pt-6">
+                    <div class="text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Reste à faire</p>
+                        <p class="text-2xl font-black italic text-white"><span id="km-left">0.0</span> <span class="text-[10px] not-italic text-lime-500">KM</span></p>
+                    </div>
+                    <div class="text-center border-l border-gray-100/10">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Temps restant</p>
+                        <p class="text-2xl font-black italic text-white"><span id="days-left">0</span> <span class="text-[10px] not-italic text-lime-500">JOURS</span></p>
+                    </div>
+                </div>
             </section>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -196,9 +207,13 @@
 
         function getEncouragement(km) {
             if (km >= 496) return "🏆 LÉGENDE DU 496 !";
+            if (km >= 450) return "Plus que 46km ahah";
             if (km >= 400) return "🚀 Phase finale activée !";
+            if (km >= 350) return "💯 Cap des 350 validé !";
             if (km >= 300) return "🔥 Tu es une machine !";
+            if (km >= 250) return "Imagine que tu as Medhi en face de toi, qu'est-ce que tu fais ?";
             if (km >= 200) return "⚡️ Cap des 200 explosé !";
+            if (km >= 150) return "Tu peux être fièr.e de toi !";
             if (km >= 100) return "💯 Cap des 100 validé !";
             if (km >= 50) return "✨ L'échauffement est fini !";
             return "🎯 Chaque km compte !";
@@ -214,6 +229,18 @@
             medal.style.opacity = (0.05 + (progress * 0.4)).toString();
             if(progress >= 1) medal.style.color = "#fbbf24";
             document.getElementById('encouragement-msg').innerText = getEncouragement(total);
+
+            // LOGIQUE DES NOUVEAUX INDICATEURS
+            // 1. Kilomètres restants
+            const kmRemaining = Math.max(496 - total, 0);
+            document.getElementById('km-left').innerText = kmRemaining.toFixed(1);
+
+            // 2. Jours restants en Janvier 2026
+            const now = new Date();
+            const endOfMonth = new Date(2026, 0, 31, 23, 59, 59); // 31 Janvier 2026
+            const diffTime = endOfMonth - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('days-left').innerText = Math.max(diffDays, 0);
 
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group animate-fade-in">
