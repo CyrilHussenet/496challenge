@@ -108,7 +108,7 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <aside class="lg:col-span-4 order-2 lg:order-1">
+                <aside class="lg:col-span-4 order-1">
                     <div class="card p-6 rounded-[2.5rem] border shadow-xl sticky top-24">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest">Classement</h3>
@@ -122,9 +122,15 @@
                             <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Vélos</div>
                         </div>
                     </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button onclick="resetIgnoredIds()" class="text-[8px] font-black uppercase tracking-widest text-gray-500 hover:text-red-500 transition-colors">
+                            <i class="fas fa-sync-alt mr-1"></i> Réinitialiser les activités ignorées
+                        </button>
+                    </div>
                 </aside>
 
-                <div class="lg:col-span-8 order-1 lg:order-2 space-y-6">
+                <div class="lg:col-span-8 order-2 space-y-6">
                     <div class="card p-5 rounded-3xl border flex flex-col sm:flex-row gap-3 items-center">
                         <div class="flex flex-1 w-full gap-3">
                             <input type="date" id="manual-date" class="bg-gray-100 dark:bg-gray-800 border-none rounded-xl px-3 py-2 text-xs flex-1 outline-none text-current">
@@ -230,20 +236,17 @@
             if(progress >= 1) medal.style.color = "#fbbf24";
             document.getElementById('encouragement-msg').innerText = getEncouragement(total);
 
-            // LOGIQUE DES NOUVEAUX INDICATEURS
-            // 1. Kilomètres restants
             const kmRemaining = Math.max(496 - total, 0);
             document.getElementById('km-left').innerText = kmRemaining.toFixed(1);
 
-            // 2. Jours restants en Janvier 2026
             const now = new Date();
-            const endOfMonth = new Date(2026, 0, 31, 23, 59, 59); // 31 Janvier 2026
+            const endOfMonth = new Date(2026, 0, 31, 23, 59, 59); 
             const diffTime = endOfMonth - now;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             document.getElementById('days-left').innerText = Math.max(diffDays, 0);
 
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
-                <div class="card p-4 rounded-2xl border flex justify-between items-center group animate-fade-in">
+                <div class="card p-4 rounded-2xl border flex justify-between items-center group">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500"><i class="fas ${getIcon(a.type)} text-xs"></i></div>
                         <div><p class="text-[9px] text-gray-500 font-bold uppercase">${a.dateDisplay}</p><p class="font-bold text-sm">${a.name}</p></div>
@@ -304,6 +307,14 @@
 
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
 
+        async function resetIgnoredIds() {
+            if(confirm("Réautoriser l'import de toutes les sorties Strava (même supprimées) ?")) {
+                userData.ignoredIds = [];
+                saveAndRefresh();
+                alert("Filtres réinitialisés. Cliquez à nouveau sur Strava.");
+            }
+        }
+
         async function checkStravaCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
@@ -315,18 +326,25 @@
                     });
                     const data = await tokenResp.json();
                     if (data.athlete?.profile_medium) userData.avatarUrl = data.athlete.profile_medium;
+                    
                     const after = Math.floor(new Date('2026-01-01').getTime() / 1000);
-                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}`, {
+                    const actResp = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=100`, {
                         headers: { 'Authorization': `Bearer ${data.access_token}` }
                     });
                     const activities = await actResp.json();
+                    
+                    let count = 0;
                     activities.forEach(a => {
-                        if (!userData.activities.find(ex => ex.stravaId === a.id) && !userData.ignoredIds.includes(a.id)) {
+                        const alreadyAdded = userData.activities.find(ex => ex.stravaId === a.id);
+                        const isIgnored = userData.ignoredIds.includes(a.id);
+                        if (!alreadyAdded && !isIgnored) {
                             userData.activities.push({ id: Date.now() + Math.random(), stravaId: a.id, km: a.distance / 1000, name: a.name, dateISO: a.start_date, type: a.sport_type || a.type, dateDisplay: new Date(a.start_date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) });
+                            count++;
                         }
                     });
                     saveAndRefresh();
-                    window.history.pushState({}, document.title, REDIRECT_URI);
+                    window.history.pushState({}, document.title, window.location.pathname);
+                    if(count > 0) alert(`${count} activités ajoutées !`);
                 } catch (e) { console.error(e); }
             }
         }
@@ -344,7 +362,7 @@
         function deleteActivity(id) {
             if(!confirm("Supprimer ?")) return;
             const act = userData.activities.find(a => a.id === id);
-            if (act.stravaId) userData.ignoredIds.push(act.stravaId);
+            if (act && act.stravaId) userData.ignoredIds.push(act.stravaId);
             userData.activities = userData.activities.filter(a => a.id !== id);
             saveAndRefresh();
         }
