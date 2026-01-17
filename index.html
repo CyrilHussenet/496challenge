@@ -14,10 +14,18 @@
     <style>
         .progress-bar-smooth { transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         body { transition: background-color 1s ease, color 0.5s ease; min-height: 100vh; }
+        
+        /* Thème Sombre */
         .dark-mode { background-color: #0a0a0a; color: white; }
         .dark-mode .card { background-color: #111827; border-color: #1f2937; }
+        .dark-mode input, .dark-mode select { background-color: #1f2937; color: white; border: 1px solid #374151; }
+        
+        /* Thème Clair */
         .light-mode { background-color: #f3f4f6; color: #111827; }
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; }
+        .light-mode input, .light-mode select { background-color: #f9fafb; color: #111827; border: 1px solid #d1d5db; }
+        .light-mode #current-user-name { color: #4d7c0f; }
+
         .blur-bg { filter: blur(20px); pointer-events: none; }
     </style>
 </head>
@@ -27,16 +35,16 @@
         <div class="card p-8 rounded-[2.5rem] border w-full max-w-md text-center shadow-2xl">
             <h2 class="text-2xl font-black italic uppercase mb-6 tracking-tighter">Identification</h2>
             <div class="space-y-4">
-                <select id="modal-pseudo-select" class="w-full bg-gray-100 dark:bg-gray-800 border rounded-2xl px-4 py-4 text-sm outline-none text-current cursor-pointer"></select>
-                <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full bg-gray-100 dark:bg-gray-800 border rounded-2xl px-4 py-4 text-sm outline-none text-current">
-                <input type="password" id="modal-pin" maxlength="4" placeholder="Code PIN" class="w-full bg-gray-100 dark:bg-gray-800 border rounded-2xl px-4 py-4 text-center text-xl outline-none text-lime-500 font-bold">
+                <select id="modal-pseudo-select" class="w-full rounded-2xl px-4 py-4 text-sm outline-none cursor-pointer !text-black bg-gray-100"></select>
+                <input type="text" id="modal-new-pseudo" placeholder="Nouveau pseudo" class="w-full rounded-2xl px-4 py-4 text-sm outline-none !text-black bg-gray-100">
+                <input type="password" id="modal-pin" maxlength="4" placeholder="Code PIN" class="w-full rounded-2xl px-4 py-4 text-center text-xl outline-none font-bold !text-lime-600 bg-gray-100">
                 <button onclick="confirmLogin()" class="w-full bg-lime-600 text-black font-black uppercase py-4 rounded-2xl shadow-lg active:scale-95 transition-all">Entrer</button>
             </div>
         </div>
     </div>
 
     <div id="main-content">
-        <nav class="p-4 border-b sticky top-0 z-50 backdrop-blur-md bg-black/20">
+        <nav class="p-4 border-b sticky top-0 z-50 backdrop-blur-md bg-black/10">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
                 <h1 class="text-xl font-black text-lime-500 italic uppercase tracking-tighter">496 Social</h1>
                 <div class="flex items-center gap-3 bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
@@ -55,22 +63,22 @@
                     </svg>
                     <div class="text-center z-10">
                         <h2 class="text-5xl font-black italic tracking-tighter" id="total-display">0.0</h2>
-                        <p class="text-[8px] font-black uppercase tracking-widest text-gray-500">Kilomètres</p>
+                        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Kilomètres</p>
                         <span id="percent-display" class="text-lg font-black text-lime-500">0%</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mt-8 w-full max-w-sm border-t border-white/5 pt-6">
+                <div class="grid grid-cols-2 gap-4 mt-8 w-full max-w-sm border-t border-gray-500/20 pt-6">
                     <div class="text-center">
-                        <p class="text-[8px] font-black uppercase text-gray-500 mb-1">Reste à faire</p>
-                        <p class="text-xl font-black text-white"><span id="km-left">0.0</span> <span class="text-[10px] text-lime-500 uppercase italic">km</span></p>
+                        <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Reste à faire</p>
+                        <p class="text-xl font-black"><span id="km-left">0.0</span> <span class="text-[10px] text-lime-500 uppercase italic">km</span></p>
                     </div>
-                    <div class="text-center border-l border-white/5">
-                        <p class="text-[8px] font-black uppercase text-gray-500 mb-1">Temps restant</p>
-                        <p class="text-xl font-black text-white"><span id="days-left">0</span> <span class="text-[10px] text-lime-500 uppercase italic">jours</span></p>
+                    <div class="text-center border-l border-gray-500/20">
+                        <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Temps restant</p>
+                        <p class="text-xl font-black"><span id="days-left">0</span> <span class="text-[10px] text-lime-500 uppercase italic">jours</span></p>
                     </div>
                 </div>
-                <div id="encouragement-msg" class="mt-6 text-[9px] font-black uppercase tracking-[0.2em] text-lime-400 text-center">...</div>
+                <div id="encouragement-msg" class="mt-6 text-[9px] font-black uppercase tracking-[0.2em] text-lime-500 text-center italic">...</div>
             </section>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -96,7 +104,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
                 <aside class="lg:col-span-4 order-1">
-                    <button onclick="resetIgnoredIds()" class="w-full mb-4 py-3 border border-dashed border-gray-600 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:border-red-500 hover:text-red-500 transition-all">
+                    <button onclick="resetIgnoredIds()" class="w-full mb-4 py-3 border border-dashed border-gray-400 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:border-red-500 hover:text-red-500 transition-all">
                         <i class="fas fa-sync-alt mr-2"></i> Réinitialiser les activités bloquées
                     </button>
 
@@ -108,7 +116,7 @@
                         
                         <div id="leaderboard" class="space-y-6"></div>
 
-                        <div class="mt-8 pt-6 border-t border-gray-800 grid grid-cols-2 gap-2 opacity-60">
+                        <div class="mt-8 pt-6 border-t border-gray-500/20 grid grid-cols-2 gap-2 opacity-60">
                             <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-lime-500"></span> Course</div>
                             <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Trail</div>
                             <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Marche</div>
@@ -119,8 +127,8 @@
 
                 <div class="lg:col-span-8 order-2 space-y-4">
                     <div class="card p-4 rounded-3xl border flex flex-col sm:flex-row gap-3">
-                        <input type="date" id="manual-date" class="bg-gray-100 dark:bg-gray-800 border-none rounded-xl px-4 py-2 text-xs flex-1 text-current outline-none">
-                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-gray-100 dark:bg-gray-800 border-none rounded-xl px-4 py-2 text-sm w-full sm:w-24 outline-none">
+                        <input type="date" id="manual-date" class="border-none rounded-xl px-4 py-2 text-xs flex-1 outline-none">
+                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="border-none rounded-xl px-4 py-2 text-sm w-full sm:w-24 outline-none">
                         <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-6 py-3 rounded-xl">Ajouter</button>
                     </div>
                     <div id="activities-list" class="space-y-3"></div>
@@ -143,6 +151,7 @@
         let userData = JSON.parse(localStorage.getItem('496_data_v22')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
 
         window.addEventListener('DOMContentLoaded', async () => {
+            applyTheme(); // Applique le thème en fonction de l'heure
             document.getElementById('manual-date').valueAsDate = new Date();
             await checkAuth();
             if(myPseudo) {
@@ -152,12 +161,25 @@
             }
         });
 
+        // Fonction de thème restaurée
+        function applyTheme() {
+            const hour = new Date().getHours();
+            if (hour >= 8 && hour < 18) {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+                document.body.classList.add('dark-mode');
+            }
+        }
+
         async function checkAuth() {
             if (!myPseudo) {
                 document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('main-content').classList.add('blur-bg');
                 const { data } = await supabaseClient.from('scores').select('pseudo').order('pseudo');
                 const select = document.getElementById('modal-pseudo-select');
-                select.innerHTML = '<option value="">-- Choisir --</option>';
+                select.innerHTML = '<option value="">-- Choisir Profil --</option>';
                 data?.forEach(u => select.innerHTML += `<option value="${u.pseudo}">${u.pseudo}</option>`);
             } else {
                 document.getElementById('current-user-name').innerText = myPseudo;
@@ -194,7 +216,7 @@
             const now = new Date();
             const fin = new Date(2026, 0, 31, 23, 59, 59);
             document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - now) / (1000 * 60 * 60 * 24)), 0);
-            document.getElementById('encouragement-msg').innerText = total >= 496 ? "🏆 LÉGENDE DU 496 !" : "🎯 Chaque kilomètre compte !";
+            document.getElementById('encouragement-msg').innerText = total >= 496 ? "🏆 LÉGENDE DU 496 !" : "🎯 Le 496 n'attend pas !";
 
             document.getElementById('activities-list').innerHTML = userData.activities.map(a => `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group">
@@ -227,12 +249,12 @@
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-[10px] font-bold uppercase">
                             <div class="flex items-center gap-2">
-                                <img src="${u.avatar_url || 'https://via.placeholder.com/30'}" class="w-6 h-6 rounded-full border border-gray-700 object-cover">
+                                <img src="${u.avatar_url || 'https://via.placeholder.com/30'}" class="w-6 h-6 rounded-full border border-gray-500 object-cover">
                                 <span class="${u.pseudo === myPseudo ? 'text-lime-500 font-black' : ''}">${u.pseudo}</span>
                             </div>
                             <span>${u.distance.toFixed(1)} km</span>
                         </div>
-                        <div class="flex w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                        <div class="flex w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div class="h-full bg-lime-500" style="width: ${Math.min((stats.Run/496)*100, 100)}%"></div>
                             <div class="h-full bg-orange-500" style="width: ${Math.min((stats.TrailRun/496)*100, 100)}%"></div>
                             <div class="h-full bg-cyan-400" style="width: ${Math.min((stats.Walk/496)*100, 100)}%"></div>
@@ -257,7 +279,7 @@
             if(confirm("Réautoriser l'import de toutes les activités Strava ?")) {
                 userData.ignoredIds = [];
                 saveAndRefresh();
-                alert("Filtres réinitialisés. Recliquez sur Strava.");
+                alert("Filtres vidés. Recliquez sur Strava.");
             }
         }
 
