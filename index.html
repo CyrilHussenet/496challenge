@@ -22,8 +22,18 @@
 
         .blur-bg { filter: blur(20px); pointer-events: none; }
         
-        /* Forcer la lisibilité des inputs dans la modal */
         #login-modal input, #login-modal select { color: #000 !important; background-color: #f3f4f6 !important; }
+
+        /* Style pour le curseur de l'objectif du jour dans la barre de progression */
+        .target-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #ef4444; /* Rouge pour la cible */
+            z-index: 10;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+        }
     </style>
 </head>
 <body class="dark-mode font-sans overflow-x-hidden">
@@ -52,7 +62,7 @@
 
         <main class="max-w-5xl mx-auto p-4 mt-4">
             
-            <section class="card p-8 rounded-[3rem] border shadow-2xl mb-6 flex flex-col items-center">
+            <section class="card p-8 rounded-[3rem] border shadow-2xl mb-6 flex flex-col items-center text-center">
                 <div class="relative w-56 h-56 flex items-center justify-center">
                     <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2" class="opacity-10" />
@@ -74,6 +84,10 @@
                         <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Temps restant</p>
                         <p class="text-xl font-black"><span id="days-left">0</span> <span class="text-[10px] text-lime-500 uppercase italic">jours</span></p>
                     </div>
+                    <div class="text-center col-span-2 border-t border-gray-500/10 pt-4 mt-2">
+                        <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Position / Objectif du jour</p>
+                        <p class="text-xl font-black" id="delta-display">--</p>
+                    </div>
                 </div>
             </section>
 
@@ -90,14 +104,8 @@
                         <i class="fas fa-sync-alt mr-2"></i> Réinitialiser / Secours
                     </button>
                     <div class="card p-6 rounded-[2.5rem] border">
-                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest mb-6">Classement</h3>
+                        <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest mb-6">Classement (Ligne rouge = Objectif jour)</h3>
                         <div id="leaderboard" class="space-y-6"></div>
-                        <div class="mt-8 pt-6 border-t border-gray-500/20 grid grid-cols-2 gap-2 opacity-60">
-                            <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-lime-500"></span> Course</div>
-                            <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Trail</div>
-                            <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Marche</div>
-                            <div class="flex items-center gap-1.5 text-[8px] font-bold uppercase"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Vélos</div>
-                        </div>
                     </div>
                 </aside>
 
@@ -181,8 +189,28 @@
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (Math.min(total/496, 1) * 283);
             document.getElementById('km-left').innerText = Math.max(496 - total, 0).toFixed(1);
             
+            const maintenant = new Date();
             const fin = new Date(2026, 0, 31, 23, 59, 59);
-            document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - new Date()) / (1000 * 60 * 60 * 24)), 0);
+            document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - maintenant) / (1000 * 60 * 60 * 24)), 0);
+
+            // CALCUL AVANCE / RETARD
+            const jourActuel = maintenant.getDate();
+            const moisActuel = maintenant.getMonth();
+            let deltaText = "--";
+            let deltaClass = "text-gray-500";
+
+            if (moisActuel === 0) {
+                const objectifTheorique = (jourActuel * (jourActuel + 1)) / 2;
+                const delta = total - objectifTheorique;
+                deltaText = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} km`;
+                deltaClass = delta >= 0 ? "text-lime-500" : "text-red-500";
+            } else if (moisActuel > 0) {
+                deltaText = total >= 496 ? "Terminé !" : "Incomplet";
+            }
+
+            const dDisplay = document.getElementById('delta-display');
+            dDisplay.innerText = deltaText;
+            dDisplay.className = `text-xl font-black ${deltaClass}`;
 
             document.getElementById('activities-list').innerHTML = userData.activities.filter(a => a.km > 0).map(a => `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group">
@@ -200,6 +228,10 @@
         async function refreshLeaderboard() {
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if (data) {
+                const jour = new Date().getDate();
+                const targetKm = (jour * (jour + 1)) / 2;
+                const targetPercent = Math.min((targetKm / 496) * 100, 100);
+
                 document.getElementById('leaderboard').innerHTML = data.map(u => {
                     const stats = { Run: 0, TrailRun: 0, Walk: 0, Ride: 0 };
                     (u.activities_data || []).forEach(a => {
@@ -208,6 +240,7 @@
                         else if (a.type === 'TrailRun') stats.TrailRun += a.km;
                         else stats.Run += a.km;
                     });
+
                     return `
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-[10px] font-bold uppercase">
@@ -217,11 +250,14 @@
                             </div>
                             <span>${u.distance.toFixed(1)} km</span>
                         </div>
-                        <div class="flex w-full h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-lime-500" style="width: ${(stats.Run/496)*100}%"></div>
-                            <div class="h-full bg-orange-500" style="width: ${(stats.TrailRun/496)*100}%"></div>
-                            <div class="h-full bg-cyan-400" style="width: ${(stats.Walk/496)*100}%"></div>
-                            <div class="h-full bg-red-500" style="width: ${(stats.Ride/496)*100}%"></div>
+                        <div class="relative w-full h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="flex h-full">
+                                <div class="h-full bg-lime-500" style="width: ${(stats.Run/496)*100}%"></div>
+                                <div class="h-full bg-orange-500" style="width: ${(stats.TrailRun/496)*100}%"></div>
+                                <div class="h-full bg-cyan-400" style="width: ${(stats.Walk/496)*100}%"></div>
+                                <div class="h-full bg-red-500" style="width: ${(stats.Ride/496)*100}%"></div>
+                            </div>
+                            <div class="target-marker" style="left: ${targetPercent}%"></div>
                         </div>
                     </div>`;
                 }).join('');
