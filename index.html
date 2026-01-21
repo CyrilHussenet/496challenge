@@ -24,13 +24,12 @@
         
         #login-modal input, #login-modal select { color: #000 !important; background-color: #f3f4f6 !important; }
 
-        /* Style pour le curseur de l'objectif du jour dans la barre de progression */
         .target-marker {
             position: absolute;
             top: 0;
             bottom: 0;
             width: 3px;
-            background-color: #000000; /* Noir pour la cible */
+            background-color: #000000;
             z-index: 10;
             box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
         }
@@ -106,13 +105,32 @@
                     <div class="card p-6 rounded-[2.5rem] border">
                         <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest mb-6">Classement (Ligne rouge = Objectif jour)</h3>
                         <div id="leaderboard" class="space-y-6"></div>
+                        <div class="mt-8 pt-6 border-t border-gray-500/20 flex flex-wrap gap-x-4 gap-y-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-lime-500"></div>
+                                <span class="text-[8px] font-black uppercase text-gray-400">Course</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                                <span class="text-[8px] font-black uppercase text-gray-400">Trail</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                                <span class="text-[8px] font-black uppercase text-gray-400">Marche</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <span class="text-[8px] font-black uppercase text-gray-400">Vélo</span>
+                            </div>
+                        </div>
                     </div>
                 </aside>
 
                 <div class="lg:col-span-8 order-2 space-y-4">
                     <div class="card p-4 rounded-3xl border flex gap-3">
                         <input type="date" id="manual-date" class="bg-transparent text-xs flex-1 outline-none">
-                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-transparent text-sm w-20 outline-none">
+                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-transparent text-sm w-16 outline-none">
+                        <input type="number" id="manual-min" placeholder="Min" class="bg-transparent text-sm w-16 outline-none">
                         <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl">Ajouter</button>
                     </div>
                     <div id="activities-list" class="space-y-3"></div>
@@ -181,6 +199,15 @@
             location.reload();
         }
 
+        // Fonction utilitaire pour calculer l'allure (min/km)
+        function formatPace(seconds, km) {
+            if (!km || !seconds || km === 0) return null;
+            const totalMinutes = (seconds / 60) / km;
+            const mins = Math.floor(totalMinutes);
+            const secs = Math.round((totalMinutes - mins) * 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}/km`;
+        }
+
         function updateUI() {
             const total = userData.activities.reduce((sum, a) => sum + a.km, 0);
             userData.totalKm = total;
@@ -193,36 +220,44 @@
             const fin = new Date(2026, 0, 31, 23, 59, 59);
             document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - maintenant) / (1000 * 60 * 60 * 24)), 0);
 
-            // CALCUL AVANCE / RETARD
-            const jourActuel = maintenant.getDate();
-            const moisActuel = maintenant.getMonth();
-            let deltaText = "--";
-            let deltaClass = "text-gray-500";
-
-            if (moisActuel === 0) {
-                const objectifTheorique = (jourActuel * (jourActuel + 1)) / 2;
-                const delta = total - objectifTheorique;
-                deltaText = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} km`;
-                deltaClass = delta >= 0 ? "text-lime-500" : "text-red-500";
-            } else if (moisActuel > 0) {
-                deltaText = total >= 496 ? "Terminé !" : "Incomplet";
-            }
+            // CALCUL ALLURE MOYENNE PAR JOUR (Course & Trail uniquement)
+            const dailyStats = {};
+            userData.activities.forEach(a => {
+                if (a.type === 'Run' || a.type === 'TrailRun') {
+                    if (!dailyStats[a.dateDisplay]) dailyStats[a.dateDisplay] = { km: 0, sec: 0 };
+                    dailyStats[a.dateDisplay].km += a.km;
+                    dailyStats[a.dateDisplay].sec += (a.duration || 0);
+                }
+            });
 
             const dDisplay = document.getElementById('delta-display');
-            dDisplay.innerText = deltaText;
-            dDisplay.className = `text-xl font-black ${deltaClass}`;
+            if (maintenant.getMonth() === 0) {
+                const jourActuel = maintenant.getDate();
+                const objectifTheorique = (jourActuel * (jourActuel + 1)) / 2;
+                const delta = total - objectifTheorique;
+                dDisplay.innerText = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} km`;
+                dDisplay.className = `text-xl font-black ${delta >= 0 ? "text-lime-500" : "text-red-500"}`;
+            }
 
-            document.getElementById('activities-list').innerHTML = userData.activities.filter(a => a.km > 0).map(a => `
+            document.getElementById('activities-list').innerHTML = userData.activities.filter(a => a.km > 0).map(a => {
+                // On récupère l'allure moyenne du jour calculée plus haut
+                const dayPace = (a.type === 'Run' || a.type === 'TrailRun') ? formatPace(dailyStats[a.dateDisplay].sec, dailyStats[a.dateDisplay].km) : null;
+                
+                return `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500"><i class="fas ${getIcon(a.type)} text-xs"></i></div>
-                        <div><p class="text-[8px] text-gray-500 font-bold uppercase">${a.dateDisplay}</p><p class="font-bold text-xs">${a.name}</p></div>
+                        <div>
+                            <p class="text-[8px] text-gray-500 font-bold uppercase">${a.dateDisplay} ${dayPace ? `• <span class="text-lime-500">Moy. jour: ${dayPace}</span>` : ''}</p>
+                            <p class="font-bold text-xs">${a.name}</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-lime-500 font-black">+${a.km.toFixed(1)}</span>
                         <button onclick="deleteActivity(${a.id})" class="text-red-500 opacity-0 group-hover:opacity-100 p-2"><i class="fas fa-trash text-xs"></i></button>
                     </div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
 
         async function refreshLeaderboard() {
@@ -289,7 +324,16 @@
                 const activities = await actResp.json();
                 activities.forEach(a => {
                     if (!userData.activities.find(ex => ex.stravaId === a.id) && !userData.ignoredIds.includes(a.id)) {
-                        userData.activities.push({ id: Date.now()+Math.random(), stravaId: a.id, km: a.distance/1000, name: a.name, dateISO: a.start_date, type: a.sport_type || a.type, dateDisplay: new Date(a.start_date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) });
+                        userData.activities.push({ 
+                            id: Date.now()+Math.random(), 
+                            stravaId: a.id, 
+                            km: a.distance/1000, 
+                            duration: a.moving_time, // On stocke la durée Strava
+                            name: a.name, 
+                            dateISO: a.start_date, 
+                            type: a.sport_type || a.type, 
+                            dateDisplay: new Date(a.start_date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
+                        });
                     }
                 });
                 saveAndRefresh();
@@ -313,13 +357,24 @@
         }
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
+        
         function submitManualEntry() {
             const km = parseFloat(document.getElementById('manual-km').value);
+            const min = parseFloat(document.getElementById('manual-min').value) || 0;
             const date = document.getElementById('manual-date').value;
             if(!km || !date) return;
-            userData.activities.unshift({ id: Date.now(), km, name: "Manuel", dateISO: new Date(date).toISOString(), type: 'Run', dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) });
+            userData.activities.unshift({ 
+                id: Date.now(), 
+                km, 
+                duration: min * 60, // Conversion minutes en secondes
+                name: "Manuel", 
+                dateISO: new Date(date).toISOString(), 
+                type: 'Run', 
+                dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
+            });
             saveAndRefresh();
         }
+
         function deleteActivity(id) {
             const act = userData.activities.find(a => a.id === id);
             if(act?.stravaId) userData.ignoredIds.push(act.stravaId);
