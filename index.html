@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
@@ -21,6 +22,14 @@
         #login-modal input, #login-modal select { color: #000 !important; background-color: #f3f4f6 !important; }
         .target-marker { position: absolute; top: 0; bottom: 0; width: 3px; background-color: #000000; z-index: 10; box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); }
         main { flex: 1; }
+        
+        /* Animation pour le message de succès */
+        @keyframes shine {
+            0% { text-shadow: 0 0 5px #84cc16; }
+            50% { text-shadow: 0 0 20px #84cc16, 0 0 30px #ffffff; }
+            100% { text-shadow: 0 0 5px #84cc16; }
+        }
+        .animate-victory { animation: shine 2s infinite; }
     </style>
 </head>
 <body class="dark-mode font-sans overflow-x-hidden">
@@ -50,15 +59,24 @@
         <main class="max-w-5xl mx-auto p-4 mt-4">
             <section class="card p-8 rounded-[3rem] border shadow-2xl mb-6 flex flex-col items-center text-center">
                 <div class="relative w-56 h-56 flex items-center justify-center">
-                    <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <i id="medal-icon" class="fas fa-medal absolute text-7xl text-yellow-500 opacity-0 transition-opacity duration-1000 z-0"></i>
+                    
+                    <svg class="absolute top-0 left-0 w-full h-full transform -rotate-90 z-10" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2" class="opacity-10" />
                         <circle id="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="#84cc16" stroke-width="5" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283" class="progress-bar-smooth" />
                     </svg>
-                    <div class="text-center z-10">
+                    
+                    <div class="text-center z-20">
                         <h2 class="text-5xl font-black italic tracking-tighter" id="total-display">0.0</h2>
                         <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Kilomètres</p>
                         <span id="percent-display" class="text-lg font-black text-lime-500">0%</span>
                     </div>
+                </div>
+
+                <div id="congrats-banner" class="hidden mt-6 p-4 bg-lime-500/10 border border-lime-500/50 rounded-2xl animate-bounce">
+                    <p class="text-lime-500 font-black italic uppercase tracking-widest text-sm animate-victory">
+                        🏆 Incroyable ! Challenge 496 Terminé ! 🏆
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-8 w-full max-w-sm border-t border-gray-500/20 pt-6">
@@ -155,6 +173,7 @@
         let myPseudo = localStorage.getItem('496_pseudo') || "";
         let userData = JSON.parse(localStorage.getItem('496_data_v22')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
         let chartInstance = null;
+        let hasCelebrated = false;
 
         const cyclingTypes = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide'];
 
@@ -211,14 +230,45 @@
             return `${mins}:${secs.toString().padStart(2, '0')}/km`;
         }
 
+        function launchConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#84cc16', '#fbbf24', '#ffffff']
+            });
+        }
+
         function updateUI() {
             const total = userData.activities.reduce((sum, a) => sum + a.km, 0);
             const totalElevation = userData.activities.reduce((sum, a) => sum + (a.elevation || 0), 0);
             
             userData.totalKm = total;
             document.getElementById('total-display').innerText = total.toFixed(1);
-            document.getElementById('percent-display').innerText = Math.round((total/496)*100) + "%";
+            
+            const percentage = Math.round((total/496)*100);
+            document.getElementById('percent-display').innerText = percentage + "%";
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (Math.min(total/496, 1) * 283);
+            
+            // Gestion de la médaille en transparence (max 0.4 si pas fini, 1 si fini)
+            const medal = document.getElementById('medal-icon');
+            const targetOpacity = total >= 496 ? 1 : (total / 496) * 0.4;
+            medal.style.opacity = targetOpacity;
+            if(total >= 496) medal.classList.add('animate-pulse');
+
+            // Affichage bandeau félicitations et confettis
+            const banner = document.getElementById('congrats-banner');
+            if(total >= 496) {
+                banner.classList.remove('hidden');
+                if(!hasCelebrated) {
+                    launchConfetti();
+                    hasCelebrated = true;
+                }
+            } else {
+                banner.classList.add('hidden');
+                hasCelebrated = false;
+            }
+
             document.getElementById('total-elevation').innerText = Math.round(totalElevation);
             
             const maintenant = new Date();
