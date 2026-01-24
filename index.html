@@ -76,8 +76,8 @@
 
                 <div class="grid grid-cols-2 gap-4 mt-8 w-full max-w-sm border-t border-gray-500/20 pt-6">
                     <div class="text-center">
-                        <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Reste à faire</p>
-                        <p class="text-xl font-black"><span id="km-left">0.0</span> <span class="text-[10px] text-lime-500 uppercase italic">km</span></p>
+                        <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Dénivelé Total</p>
+                        <p class="text-xl font-black"><span id="total-elevation">0</span> <span class="text-[10px] text-lime-500 uppercase italic">m d+</span></p>
                     </div>
                     <div class="text-center border-l border-gray-500/20">
                         <p class="text-[8px] font-black uppercase text-gray-400 mb-1">Temps restant</p>
@@ -127,11 +127,12 @@
                 </aside>
 
                 <div class="lg:col-span-8 order-2 space-y-4">
-                    <div class="card p-4 rounded-3xl border flex gap-3">
-                        <input type="date" id="manual-date" class="bg-transparent text-xs flex-1 outline-none">
+                    <div class="card p-4 rounded-3xl border flex flex-wrap gap-3">
+                        <input type="date" id="manual-date" class="bg-transparent text-xs flex-1 min-w-[120px] outline-none">
                         <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-transparent text-sm w-16 outline-none">
                         <input type="number" id="manual-min" placeholder="Min" class="bg-transparent text-sm w-16 outline-none">
-                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl">Ajouter</button>
+                        <input type="number" id="manual-dplus" placeholder="D+" class="bg-transparent text-sm w-16 outline-none">
+                        <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl ml-auto">Ajouter</button>
                     </div>
                     <div id="activities-list" class="space-y-3"></div>
                 </div>
@@ -199,7 +200,6 @@
             location.reload();
         }
 
-        // Fonction utilitaire pour calculer l'allure (min/km)
         function formatPace(seconds, km) {
             if (!km || !seconds || km === 0) return null;
             const totalMinutes = (seconds / 60) / km;
@@ -210,17 +210,18 @@
 
         function updateUI() {
             const total = userData.activities.reduce((sum, a) => sum + a.km, 0);
+            const totalElevation = userData.activities.reduce((sum, a) => sum + (a.elevation || 0), 0);
+            
             userData.totalKm = total;
             document.getElementById('total-display').innerText = total.toFixed(1);
             document.getElementById('percent-display').innerText = Math.round((total/496)*100) + "%";
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (Math.min(total/496, 1) * 283);
-            document.getElementById('km-left').innerText = Math.max(496 - total, 0).toFixed(1);
+            document.getElementById('total-elevation').innerText = Math.round(totalElevation);
             
             const maintenant = new Date();
             const fin = new Date(2026, 0, 31, 23, 59, 59);
             document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - maintenant) / (1000 * 60 * 60 * 24)), 0);
 
-            // CALCUL ALLURE MOYENNE PAR JOUR (Course & Trail uniquement)
             const dailyStats = {};
             userData.activities.forEach(a => {
                 if (a.type === 'Run' || a.type === 'TrailRun') {
@@ -240,15 +241,15 @@
             }
 
             document.getElementById('activities-list').innerHTML = userData.activities.filter(a => a.km > 0).map(a => {
-                // On récupère l'allure moyenne du jour calculée plus haut
                 const dayPace = (a.type === 'Run' || a.type === 'TrailRun') ? formatPace(dailyStats[a.dateDisplay].sec, dailyStats[a.dateDisplay].km) : null;
+                const elevDisplay = a.elevation ? ` • ${Math.round(a.elevation)}m D+` : '';
                 
                 return `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500"><i class="fas ${getIcon(a.type)} text-xs"></i></div>
                         <div>
-                            <p class="text-[8px] text-gray-500 font-bold uppercase">${a.dateDisplay} ${dayPace ? `• <span class="text-lime-500">Moy. jour: ${dayPace}</span>` : ''}</p>
+                            <p class="text-[8px] text-gray-500 font-bold uppercase">${a.dateDisplay}${elevDisplay} ${dayPace ? `• <span class="text-lime-500">Moy. jour: ${dayPace}</span>` : ''}</p>
                             <p class="font-bold text-xs">${a.name}</p>
                         </div>
                     </div>
@@ -328,7 +329,8 @@
                             id: Date.now()+Math.random(), 
                             stravaId: a.id, 
                             km: a.distance/1000, 
-                            duration: a.moving_time, // On stocke la durée Strava
+                            duration: a.moving_time, 
+                            elevation: a.total_elevation_gain || 0,
                             name: a.name, 
                             dateISO: a.start_date, 
                             type: a.sport_type || a.type, 
@@ -361,12 +363,14 @@
         function submitManualEntry() {
             const km = parseFloat(document.getElementById('manual-km').value);
             const min = parseFloat(document.getElementById('manual-min').value) || 0;
+            const dplus = parseFloat(document.getElementById('manual-dplus').value) || 0;
             const date = document.getElementById('manual-date').value;
             if(!km || !date) return;
             userData.activities.unshift({ 
                 id: Date.now(), 
                 km, 
-                duration: min * 60, // Conversion minutes en secondes
+                duration: min * 60, 
+                elevation: dplus,
                 name: "Manuel", 
                 dateISO: new Date(date).toISOString(), 
                 type: 'Run', 
