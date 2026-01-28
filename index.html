@@ -18,8 +18,6 @@
         .dark-mode .card { background-color: #111827; border-color: #1f2937; }
         .light-mode { background-color: #f3f4f6; color: #111827; }
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; }
-        .blur-bg { filter: blur(20px); pointer-events: none; }
-        #login-modal input, #login-modal select, #manual-type option { color: #000 !important; background-color: #f3f4f6 !important; }
         .target-marker { position: absolute; top: 0; bottom: 0; width: 3px; background-color: #000000; z-index: 10; box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); }
         main { flex: 1; }
         
@@ -29,6 +27,22 @@
             100% { text-shadow: 0 0 5px #84cc16; }
         }
         .animate-victory { animation: shine 2s infinite; }
+        
+        /* Style pour le sélecteur dans la liste */
+        .sport-select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .sport-select option { color: black; background: white; }
     </style>
 </head>
 <body class="dark-mode font-sans overflow-x-hidden">
@@ -110,31 +124,8 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <aside class="lg:col-span-4 order-1">
-                    <button onclick="resetIgnoredIds()" class="w-full mb-4 py-3 border border-dashed border-gray-500 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-red-500 transition-all">
-                        <i class="fas fa-sync-alt mr-2"></i> Réinitialiser / Secours
-                    </button>
                     <div class="card p-6 rounded-[2.5rem] border">
                         <h3 class="text-lime-500 font-black uppercase text-[10px] tracking-widest mb-6">Classement</h3>
-                        
-                        <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-500/10 pb-4">
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-2 h-2 rounded-full bg-lime-500"></div>
-                                <span class="text-[8px] font-black uppercase text-gray-400">Course</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                                <span class="text-[8px] font-black uppercase text-gray-400">Trail</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
-                                <span class="text-[8px] font-black uppercase text-gray-400">Marche</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
-                                <span class="text-[8px] font-black uppercase text-gray-400">Vélo</span>
-                            </div>
-                        </div>
-
                         <div id="leaderboard" class="space-y-6"></div>
                     </div>
                 </aside>
@@ -157,12 +148,6 @@
                 </div>
             </div>
         </main>
-
-        <footer class="mt-12 py-8 border-t border-gray-500/10 text-center">
-            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 opacity-50">
-                &copy; Cyril Hussenet
-            </p>
-        </footer>
     </div>
 
     <script>
@@ -178,8 +163,6 @@
         let myPseudo = localStorage.getItem('496_pseudo') || "";
         let userData = JSON.parse(localStorage.getItem('496_data_v22')) || { totalKm: 0, activities: [], ignoredIds: [], pin: "", avatarUrl: "" };
         let chartInstance = null;
-        let hasCelebrated = false;
-
         const cyclingTypes = ['Ride', 'VirtualRide', 'EBikeRide', 'MountainBikeRide', 'GravelRide'];
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -221,7 +204,7 @@
             const { data } = await supabaseClient.from('scores').select('*').eq('pseudo', pseudo).single();
             if (data && data.pin && data.pin !== pin) return alert("Mauvais PIN");
             myPseudo = pseudo;
-            if (data) userData = { activities: data.activities_data || [], ignoredIds: data.ignored_ids || [], pin: pin, avatarUrl: data.avatar_url, totalKm: 0 };
+            if (data) userData = { activities: data.activities_data || [], ignoredIds: data.ignored_ids || [], pin: pin, avatar_url: data.avatar_url, totalKm: 0 };
             localStorage.setItem('496_pseudo', myPseudo);
             saveAndRefresh();
             location.reload();
@@ -235,45 +218,20 @@
             return `${mins}:${secs.toString().padStart(2, '0')}/km`;
         }
 
-        function launchConfetti() {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#84cc16', '#fbbf24', '#ffffff']
-            });
-        }
-
         function updateUI() {
             const total = userData.activities.reduce((sum, a) => sum + a.km, 0);
             const totalElevation = userData.activities.reduce((sum, a) => sum + (a.elevation || 0), 0);
-            
             userData.totalKm = total;
-            document.getElementById('total-display').innerText = total.toFixed(1);
             
+            document.getElementById('total-display').innerText = total.toFixed(1);
             const percentage = Math.round((total/496)*100);
             document.getElementById('percent-display').innerText = percentage + "%";
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (Math.min(total/496, 1) * 283);
             
             const medal = document.getElementById('medal-icon');
-            const targetOpacity = total >= 496 ? 1 : (total / 496) * 0.4;
-            medal.style.opacity = targetOpacity;
-            if(total >= 496) medal.classList.add('animate-pulse');
-
-            const banner = document.getElementById('congrats-banner');
-            if(total >= 496) {
-                banner.classList.remove('hidden');
-                if(!hasCelebrated) {
-                    launchConfetti();
-                    hasCelebrated = true;
-                }
-            } else {
-                banner.classList.add('hidden');
-                hasCelebrated = false;
-            }
-
-            document.getElementById('total-elevation').innerText = Math.round(totalElevation);
+            medal.style.opacity = total >= 496 ? 1 : (total / 496) * 0.4;
             
+            document.getElementById('total-elevation').innerText = Math.round(totalElevation);
             const maintenant = new Date();
             const fin = new Date(2026, 0, 31, 23, 59, 59);
             document.getElementById('days-left').innerText = Math.max(Math.ceil((fin - maintenant) / (1000 * 60 * 60 * 24)), 0);
@@ -300,7 +258,14 @@
                 return `
                 <div class="card p-4 rounded-2xl border flex justify-between items-center group">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500"><i class="fas ${getIcon(a.type)} text-xs"></i></div>
+                        <div class="w-10 h-10 rounded-full bg-lime-500/10 flex items-center justify-center text-lime-500 relative">
+                            <select onchange="changeActivityType(${a.id}, this.value)" class="sport-select opacity-80 hover:opacity-100 transition-opacity">
+                                <option value="Run" ${a.type === 'Run' ? 'selected' : ''}>🏃</option>
+                                <option value="TrailRun" ${a.type === 'TrailRun' ? 'selected' : ''}>⛰️</option>
+                                <option value="Walk" ${a.type === 'Walk' ? 'selected' : ''}>🚶</option>
+                                <option value="Ride" ${cyclingTypes.includes(a.type) ? 'selected' : ''}>🚴</option>
+                            </select>
+                        </div>
                         <div>
                             <p class="text-[8px] text-gray-500 font-bold uppercase">${a.dateDisplay} ${a.elevation ? `• ${Math.round(a.elevation)}m D+` : ''} ${dayPace ? `• <span class="text-lime-500">Moy: ${dayPace}</span>` : ''}</p>
                             <p class="font-bold text-xs">${a.name}</p>
@@ -316,32 +281,30 @@
             updateChart(dailyStats);
         }
 
+        // Nouvelle fonction pour changer le type
+        function changeActivityType(id, newType) {
+            const index = userData.activities.findIndex(a => a.id === id);
+            if (index !== -1) {
+                userData.activities[index].type = newType;
+                saveAndRefresh();
+            }
+        }
+
         function updateChart(dailyStats) {
             const ctx = document.getElementById('progressionChart').getContext('2d');
             const dates = Object.keys(dailyStats).reverse();
             const kms = dates.map(d => dailyStats[d].km);
-            const elevs = dates.map(d => dailyStats[d].elev);
-
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: dates,
-                    datasets: [
-                        { label: 'Km', data: kms, backgroundColor: '#84cc16', borderRadius: 5, yAxisID: 'y' },
-                        { label: 'D+ (m)', data: elevs, type: 'line', borderColor: '#f97316', borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#f97316', fill: false, yAxisID: 'y1' }
-                    ]
+                    datasets: [{ label: 'Km', data: kms, backgroundColor: '#84cc16', borderRadius: 5 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: { position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#84cc16' } },
-                        y1: { position: 'right', grid: { display: false }, ticks: { color: '#f97316' } }
-                    }
+                    scales: { y: { beginAtZero: true } }
                 }
             });
         }
@@ -350,9 +313,7 @@
             const { data } = await supabaseClient.from('scores').select('*').order('distance', { ascending: false });
             if (data) {
                 const jour = new Date().getDate();
-                const targetKm = (jour * (jour + 1)) / 2;
-                const targetPercent = Math.min((targetKm / 496) * 100, 100);
-
+                const targetPercent = Math.min(((jour * (jour + 1)) / 2 / 496) * 100, 100);
                 document.getElementById('leaderboard').innerHTML = data.map(u => {
                     const stats = { Run: 0, TrailRun: 0, Walk: 0, Ride: 0 };
                     (u.activities_data || []).forEach(a => {
@@ -362,22 +323,18 @@
                         else stats.Run += a.km;
                     });
                     return `
-                    <div class="space-y-2">
+                    <div class="space-y-1">
                         <div class="flex items-center justify-between text-[10px] font-bold uppercase">
-                            <div class="flex items-center gap-2">
-                                <img src="${u.avatar_url || 'https://via.placeholder.com/30'}" class="w-6 h-6 rounded-full border border-gray-500 object-cover">
-                                <span>${u.pseudo}</span>
-                            </div>
+                            <span>${u.pseudo}</span>
                             <span>${u.distance.toFixed(1)} km</span>
                         </div>
-                        <div class="relative w-full h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div class="relative w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
                             <div class="flex h-full">
                                 <div class="h-full bg-lime-500" style="width: ${(stats.Run/496)*100}%"></div>
                                 <div class="h-full bg-orange-500" style="width: ${(stats.TrailRun/496)*100}%"></div>
                                 <div class="h-full bg-cyan-400" style="width: ${(stats.Walk/496)*100}%"></div>
                                 <div class="h-full bg-red-500" style="width: ${(stats.Ride/496)*100}%"></div>
                             </div>
-                            <div class="target-marker" style="left: ${targetPercent}%"></div>
                         </div>
                     </div>`;
                 }).join('');
@@ -427,10 +384,8 @@
             supabaseClient.from('scores').upsert({ pseudo: myPseudo, distance: userData.totalKm, activities_data: userData.activities, ignored_ids: userData.ignoredIds, pin: userData.pin, avatar_url: userData.avatarUrl }).then(refreshLeaderboard);
         }
 
-        function resetIgnoredIds() { if(confirm("Réinitialiser Strava ?")) { userData.ignoredIds = []; userData.activities = []; saveAndRefresh(); location.reload(); } }
         function connectStrava() { window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all`; }
         function logout() { localStorage.removeItem('496_pseudo'); location.reload(); }
-        function getIcon(type) { if(cyclingTypes.includes(type)) return 'fa-bicycle'; if(type === 'TrailRun') return 'fa-mountain'; if(['Walk', 'Hike'].includes(type)) return 'fa-walking'; return 'fa-running'; }
 
         function submitManualEntry() {
             const km = parseFloat(document.getElementById('manual-km').value);
@@ -450,7 +405,6 @@
                 dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
             });
             saveAndRefresh();
-            // Reset
             document.getElementById('manual-km').value = "";
             document.getElementById('manual-min').value = "";
             document.getElementById('manual-dplus').value = "";
