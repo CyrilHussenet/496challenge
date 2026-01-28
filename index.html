@@ -19,11 +19,10 @@
         .light-mode { background-color: #f3f4f6; color: #111827; }
         .light-mode .card { background-color: #ffffff; border-color: #e5e7eb; }
         .blur-bg { filter: blur(20px); pointer-events: none; }
-        #login-modal input, #login-modal select { color: #000 !important; background-color: #f3f4f6 !important; }
+        #login-modal input, #login-modal select, #manual-type option { color: #000 !important; background-color: #f3f4f6 !important; }
         .target-marker { position: absolute; top: 0; bottom: 0; width: 3px; background-color: #000000; z-index: 10; box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); }
         main { flex: 1; }
         
-        /* Animation pour le message de succès */
         @keyframes shine {
             0% { text-shadow: 0 0 5px #84cc16; }
             50% { text-shadow: 0 0 20px #84cc16, 0 0 30px #ffffff; }
@@ -141,11 +140,17 @@
                 </aside>
 
                 <div class="lg:col-span-8 order-2 space-y-4">
-                    <div class="card p-4 rounded-3xl border flex flex-wrap gap-3">
-                        <input type="date" id="manual-date" class="bg-transparent text-xs flex-1 min-w-[120px] outline-none">
-                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-transparent text-sm w-16 outline-none">
-                        <input type="number" id="manual-min" placeholder="Min" class="bg-transparent text-sm w-16 outline-none">
-                        <input type="number" id="manual-dplus" placeholder="D+" class="bg-transparent text-sm w-16 outline-none">
+                    <div class="card p-4 rounded-3xl border flex flex-wrap gap-3 items-center">
+                        <input type="date" id="manual-date" class="bg-transparent text-xs flex-1 min-w-[110px] outline-none">
+                        <select id="manual-type" class="bg-transparent text-[10px] font-black uppercase outline-none cursor-pointer border-l border-gray-500/20 pl-2">
+                            <option value="Run">🏃 Course</option>
+                            <option value="TrailRun">⛰️ Trail</option>
+                            <option value="Walk">🚶 Marche</option>
+                            <option value="Ride">🚴 Vélo</option>
+                        </select>
+                        <input type="number" id="manual-km" placeholder="Km" step="0.1" class="bg-transparent text-sm w-12 outline-none border-l border-gray-500/20 pl-2">
+                        <input type="number" id="manual-min" placeholder="Min" class="bg-transparent text-sm w-12 outline-none border-l border-gray-500/20 pl-2">
+                        <input type="number" id="manual-dplus" placeholder="D+" class="bg-transparent text-sm w-12 outline-none border-l border-gray-500/20 pl-2">
                         <button onclick="submitManualEntry()" class="bg-lime-500 text-black font-black text-[10px] uppercase px-4 py-2 rounded-xl ml-auto">Ajouter</button>
                     </div>
                     <div id="activities-list" class="space-y-3"></div>
@@ -250,13 +255,11 @@
             document.getElementById('percent-display').innerText = percentage + "%";
             document.getElementById('progress-ring').style.strokeDashoffset = 283 - (Math.min(total/496, 1) * 283);
             
-            // Gestion de la médaille en transparence (max 0.4 si pas fini, 1 si fini)
             const medal = document.getElementById('medal-icon');
             const targetOpacity = total >= 496 ? 1 : (total / 496) * 0.4;
             medal.style.opacity = targetOpacity;
             if(total >= 496) medal.classList.add('animate-pulse');
 
-            // Affichage bandeau félicitations et confettis
             const banner = document.getElementById('congrats-banner');
             if(total >= 496) {
                 banner.classList.remove('hidden');
@@ -434,9 +437,23 @@
             const min = parseFloat(document.getElementById('manual-min').value) || 0;
             const dplus = parseFloat(document.getElementById('manual-dplus').value) || 0;
             const date = document.getElementById('manual-date').value;
+            const type = document.getElementById('manual-type').value;
             if(!km || !date) return;
-            userData.activities.unshift({ id: Date.now(), km, duration: min * 60, elevation: dplus, name: "Manuel", dateISO: new Date(date).toISOString(), type: 'Run', dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) });
+            userData.activities.unshift({ 
+                id: Date.now(), 
+                km, 
+                duration: min * 60, 
+                elevation: dplus, 
+                name: "Manuel", 
+                dateISO: new Date(date).toISOString(), 
+                type: type, 
+                dateDisplay: new Date(date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) 
+            });
             saveAndRefresh();
+            // Reset
+            document.getElementById('manual-km').value = "";
+            document.getElementById('manual-min').value = "";
+            document.getElementById('manual-dplus').value = "";
         }
 
         function deleteActivity(id) {
